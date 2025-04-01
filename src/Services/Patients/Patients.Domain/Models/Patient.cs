@@ -5,7 +5,7 @@ namespace Patients.Domain.Models;
 public class Patient : Aggregate<PatientId>
 {
     public string Name { get; set; } = default!;
-    DateTime DateOfBirth { get; set; } = default!;
+    public DateTime DateOfBirth { get; set; } = default!;
     public Address PatientAddress { get; set; } = default!;
 
     public string Diagnosis {  get; set; } = default!;
