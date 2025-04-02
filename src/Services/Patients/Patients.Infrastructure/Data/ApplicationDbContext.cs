@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Patients.Domain.Models;
+﻿using Patients.Domain.Models;
 using System.Reflection;
 
 namespace Patients.Infrastructure.Data;
