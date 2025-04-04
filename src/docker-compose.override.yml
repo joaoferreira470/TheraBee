@@ -4,7 +4,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=therabee_patients;Username=postgres;Password=secret
+      - ConnectionStrings__DefaultConnection=Host=patientsdb;Port=5432;Database=therabee_patients;Username=postgres;Password=secret
     depends_on:
       - patientsdb
     ports:
