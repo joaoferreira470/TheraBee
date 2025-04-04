@@ -1,0 +1,13 @@
+services:
+
+  patients.api:
+    image: ${DOCKER_REGISTRY-}patientsapi
+    build:
+      context: .
+      dockerfile: Services/Patients/Patients.API/Dockerfile
+
+  patientsdb:
+    image: postgres:latest
+
+volumes:
+  postgres_therabee:
