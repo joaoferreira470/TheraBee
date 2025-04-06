@@ -1,5 +1,4 @@
-﻿using Patients.Domain.Models;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Patients.Infrastructure.Data;
 

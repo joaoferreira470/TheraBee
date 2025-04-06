@@ -1,7 +1,4 @@
-﻿using Patients.Domain.Models;
-using Patients.Domain.ValueObjects;
-
-namespace Patients.Infrastructure.Data.Extensions;
+﻿namespace Patients.Infrastructure.Data.Extensions;
 
 internal class InitialData
 {

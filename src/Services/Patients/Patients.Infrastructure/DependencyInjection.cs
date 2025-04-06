@@ -10,9 +10,11 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         //Add services to the container
-         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
-
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.AddInterceptors(new AuditableEntityInterceptor());
+            options.UseNpgsql(connectionString);
+        });
 
         return services;
     }
