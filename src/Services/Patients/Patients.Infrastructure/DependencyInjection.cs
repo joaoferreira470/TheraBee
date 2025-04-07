@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Patients.Application.Data;
 
 namespace Patients.Infrastructure;
 
@@ -16,6 +17,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString);
         });
 
+        services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
         return services;
     }
 }
