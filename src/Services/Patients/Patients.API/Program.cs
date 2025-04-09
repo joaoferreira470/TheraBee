@@ -15,6 +15,7 @@ var app = builder.Build();
 
 //  Configure the HTTP request pipeline
 
+app.UseApiServices();
 
 //If the Environment is Dev the application will auto Migrate upon building
 if (app.Environment.IsDevelopment())
