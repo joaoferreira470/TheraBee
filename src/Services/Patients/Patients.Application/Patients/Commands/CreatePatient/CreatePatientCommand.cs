@@ -4,7 +4,7 @@ using Patients.Application.Dtos;
 
 namespace Patients.Application.Patients.Commands.CreatePatient;
 
-public record CreatePatientCommand(PatientDto Patient)
+public record CreatePatientCommand(CreatePatientDto Patient)
     : ICommand<CreatePatientResult>;
 
 public record CreatePatientResult(Guid Id);

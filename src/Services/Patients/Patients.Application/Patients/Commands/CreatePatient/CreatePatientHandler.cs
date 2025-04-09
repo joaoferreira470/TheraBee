@@ -17,7 +17,7 @@ public class CreatePatientHandler(IApplicationDbContext dbContext)
         return new CreatePatientResult(patient.Id.Value);
     }
 
-    private Patient CreateNewPatient(PatientDto patientDto)
+    private Patient CreateNewPatient(CreatePatientDto patientDto)
     {
         var patientAddress = Address.Of(
                                         patientDto.PatientAddress.AddressLine,
@@ -28,7 +28,7 @@ public class CreatePatientHandler(IApplicationDbContext dbContext)
         
         //ver aula 236, caso dê pau : Parâmetros do Create estão passados de maneira diferente
         return Patient.Create(
-                              PatientId.Of(patientDto.Id),
+                              PatientId.Of(Guid.NewGuid()),
                               patientDto.Name,
                               patientDto.DateOfBirth,
                               patientAddress,
