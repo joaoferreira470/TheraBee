@@ -1,16 +1,16 @@
-namespace Patients.Application.Sessions.Commands.AddSessionGoals;
+namespace Patients.Application.Sessions.Commands.SetSessionGoals;
 
-public class AddSessionGoalsHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService)
-    : ICommandHandler<AddSessionGoalsCommand, AddSessionGoalsResult>
+public class SetSessionGoalsHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService)
+    : ICommandHandler<SetSessionGoalsCommand, SetSessionGoalsResult>
 {
-    public async Task<AddSessionGoalsResult> Handle(AddSessionGoalsCommand command, CancellationToken cancellationToken)
+    public async Task<SetSessionGoalsResult> Handle(SetSessionGoalsCommand command, CancellationToken cancellationToken)
     {
         var currentUserId = currentUserService.UserId
             ?? throw new UnauthorizedAccessException("User is not authenticated.");
 
         var session = await dbContext.Sessions
-            .Include(session => session.SessionGoals)
-            .FirstOrDefaultAsync(session => session.Id == command.SessionId && session.TherapistId == currentUserId, cancellationToken);
+            .Include(item => item.SessionGoals)
+            .FirstOrDefaultAsync(item => item.Id == command.SessionId && item.TherapistId == currentUserId, cancellationToken);
 
         if (session == null)
         {
@@ -31,16 +31,27 @@ public class AddSessionGoalsHandler(IApplicationDbContext dbContext, ICurrentUse
                 && goal.PatientId == session.PatientId
                 && goal.Type == expectedGoalType
                 && goalIds.Contains(goal.Id))
-            .Select(goal => goal.Id)
             .ToListAsync(cancellationToken);
 
         if (goals.Count != goalIds.Length)
         {
-            var missingGoalId = goalIds.Except(goals).FirstOrDefault();
+            var missingGoalId = goalIds.Except(goals.Select(goal => goal.Id)).FirstOrDefault();
             throw new TherapeuticGoalNotFoundException(missingGoalId == Guid.Empty ? goalIds[0] : missingGoalId);
         }
 
-        foreach (var goalId in goals)
+        var existingGoalIds = session.SessionGoals.Select(goal => goal.TherapeuticGoalId).ToHashSet();
+        var selectedGoalIds = goals.Select(goal => goal.Id).ToHashSet();
+
+        var goalsToRemove = session.SessionGoals
+            .Where(goal => !selectedGoalIds.Contains(goal.TherapeuticGoalId))
+            .ToList();
+
+        if (goalsToRemove.Count > 0)
+        {
+            dbContext.SessionGoals.RemoveRange(goalsToRemove);
+        }
+
+        foreach (var goalId in selectedGoalIds.Except(existingGoalIds))
         {
             session.AddGoal(SessionGoal.Create(Guid.NewGuid(), session.Id, goalId, currentUserId));
         }
@@ -48,6 +59,6 @@ public class AddSessionGoalsHandler(IApplicationDbContext dbContext, ICurrentUse
         dbContext.Sessions.Update(session);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new AddSessionGoalsResult(true);
+        return new SetSessionGoalsResult(true);
     }
 }

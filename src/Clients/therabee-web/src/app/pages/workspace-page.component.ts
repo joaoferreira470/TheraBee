@@ -41,6 +41,8 @@ type Patient = {
 type TherapeuticGoal = {
   id: string;
   patientId: string;
+  parentGoalId?: string | null;
+  type: string;
   description: string;
   area: string;
   priority: string;
@@ -150,6 +152,8 @@ type PatientEditForm = {
 };
 
 type GoalForm = {
+  type: string;
+  parentGoalId: string;
   description: string;
   area: string;
   priority: string;
@@ -161,6 +165,7 @@ type SessionForm = {
   endDateTime: string;
   type: string;
   location: string;
+  goalIds: string[];
 };
 
 type CheckpointForm = {
@@ -245,6 +250,8 @@ export class WorkspacePageComponent {
   });
 
   readonly goalForm = signal<GoalForm>({
+    type: 'ShortTerm',
+    parentGoalId: '',
     description: 'Melhorar coordenacao motora fina',
     area: 'Motricidade fina',
     priority: 'Medium',
@@ -256,6 +263,7 @@ export class WorkspacePageComponent {
     endDateTime: '2026-06-08T11:00',
     type: 'Intervention',
     location: 'Gabinete 1',
+    goalIds: [],
   });
 
   readonly checkpointForm = signal<CheckpointForm>({
@@ -272,6 +280,11 @@ export class WorkspacePageComponent {
   readonly selectedPatient = computed(() => this.selectedPatientDetail() ?? this.patients().find((patient) => patient.id === this.selectedPatientId()) ?? null);
   readonly selectedSession = computed(() => this.selectedSessionDetail() ?? this.sessions().find((session) => session.id === this.selectedSessionId()) ?? null);
   readonly selectedPatientGoals = computed(() => this.goals().filter((goal) => goal.patientId === this.selectedPatientId()));
+  readonly selectedPatientLongTermGoals = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'LongTerm'));
+  readonly selectedPatientShortTermGoals = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'ShortTerm'));
+  readonly availableSessionGoals = computed(() => this.sessionForm().type === 'Intervention'
+    ? this.selectedPatientShortTermGoals()
+    : this.selectedPatientLongTermGoals());
   readonly selectedPatientSessions = computed(() => this.sessions().filter((session) => session.patientId === this.selectedPatientId()).sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
   readonly selectedPatientReports = computed(() => this.reports().filter((report) => report.patientId === this.selectedPatientId()).sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
   readonly allSessions = computed(() => this.sessions().slice().sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
@@ -362,11 +375,25 @@ export class WorkspacePageComponent {
   }
 
   updateGoal(field: keyof GoalForm, value: string) {
-    this.goalForm.update((form) => ({ ...form, [field]: value }));
+    this.goalForm.update((form) => {
+      const next = { ...form, [field]: value };
+      if (field === 'type' && value !== 'ShortTerm') {
+        next.parentGoalId = '';
+      }
+      return next;
+    });
   }
 
   updateSession(field: keyof SessionForm, value: string) {
-    this.sessionForm.update((form) => ({ ...form, [field]: value }));
+    this.sessionForm.update((form) => {
+      const next = { ...form, [field]: value };
+      if (field === 'type') {
+        const allowedGoalIds = new Set(this.goalIdsForSessionType(value));
+        next.goalIds = form.goalIds.filter((goalId) => allowedGoalIds.has(goalId));
+      }
+
+      return next;
+    });
   }
 
   updateCheckpoint(field: keyof CheckpointForm, value: string) {
@@ -480,6 +507,8 @@ export class WorkspacePageComponent {
       if (editingGoalId) {
         await firstValueFrom(this.http.put(`${API_BASE_URL}/therapy-goals/${editingGoalId}`, {
           goal: {
+            type: form.type,
+            parentGoalId: form.parentGoalId || null,
             description: form.description,
             area: form.area,
             priority: form.priority,
@@ -489,6 +518,8 @@ export class WorkspacePageComponent {
       } else {
         await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, {
           goal: {
+            type: form.type,
+            parentGoalId: form.parentGoalId || null,
             description: form.description,
             area: form.area,
             priority: form.priority,
@@ -506,6 +537,8 @@ export class WorkspacePageComponent {
   async editGoal(goal: TherapeuticGoal) {
     this.editingGoalId.set(goal.id);
     this.goalForm.set({
+      type: goal.type,
+      parentGoalId: goal.parentGoalId ?? '',
       description: goal.description,
       area: goal.area,
       priority: goal.priority,
@@ -516,6 +549,8 @@ export class WorkspacePageComponent {
   cancelGoalEditing() {
     this.editingGoalId.set('');
     this.goalForm.set({
+      type: 'ShortTerm',
+      parentGoalId: '',
       description: 'Melhorar coordenacao motora fina',
       area: 'Motricidade fina',
       priority: 'Medium',
@@ -550,7 +585,7 @@ export class WorkspacePageComponent {
           endDateTime: this.toIsoDateTime(form.endDateTime),
           type: form.type,
           location: form.location,
-          goalIds: this.selectedPatientGoals().map((goal) => goal.id),
+          goalIds: form.goalIds,
         },
       }, { headers: this.authHeaders() }));
 
@@ -574,6 +609,12 @@ export class WorkspacePageComponent {
           endDateTime: this.toIsoDateTime(form.endDateTime),
           type: form.type,
           location: form.location,
+        },
+      }, { headers: this.authHeaders() }));
+
+      await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/goals`, {
+        goals: {
+          goalIds: form.goalIds,
         },
       }, { headers: this.authHeaders() }));
 
@@ -736,6 +777,7 @@ export class WorkspacePageComponent {
           endDateTime: this.toLocalDateTime(sessionResponse.session.endDateTime),
           type: sessionResponse.session.type,
           location: sessionResponse.session.location,
+          goalIds: sessionResponse.session.goalIds ?? [],
         });
         this.checkpointForm.set({
           clinicalSummary: sessionResponse.session.clinicalSummary ?? '',
@@ -746,6 +788,14 @@ export class WorkspacePageComponent {
           difficulties: sessionResponse.session.difficulties ?? '',
           recommendations: sessionResponse.session.recommendations ?? '',
           nextSteps: sessionResponse.session.nextSteps ?? '',
+        });
+      } else {
+        this.sessionForm.set({
+          startDateTime: '2026-06-08T10:00',
+          endDateTime: '2026-06-08T11:00',
+          type: 'Intervention',
+          location: 'Gabinete 1',
+          goalIds: [],
         });
       }
     }, 'Nao foi possivel carregar o contexto do paciente.');
@@ -784,6 +834,42 @@ export class WorkspacePageComponent {
     }[priority] ?? priority;
   }
 
+  goalTypeLabel(type: string) {
+    return {
+      LongTerm: 'Longo prazo',
+      ShortTerm: 'Curto prazo',
+    }[type] ?? type;
+  }
+
+  sessionGoalContextLabel() {
+    return this.sessionForm().type === 'Intervention'
+      ? 'Objetivos de curto prazo'
+      : 'Objetivos de longo prazo';
+  }
+
+  isSessionGoalSelected(goalId: string) {
+    return this.sessionForm().goalIds.includes(goalId);
+  }
+
+  toggleSessionGoal(goalId: string) {
+    this.sessionForm.update((form) => ({
+      ...form,
+      goalIds: form.goalIds.includes(goalId)
+        ? form.goalIds.filter((item) => item !== goalId)
+        : [...form.goalIds, goalId],
+    }));
+  }
+
+  goalIdsForSessionType(sessionType: string) {
+    return sessionType === 'Intervention'
+      ? this.selectedPatientShortTermGoals().map((goal) => goal.id)
+      : this.selectedPatientLongTermGoals().map((goal) => goal.id);
+  }
+
+  goalDescriptionById(goalId: string) {
+    return this.goals().find((goal) => goal.id === goalId)?.description ?? goalId;
+  }
+
   sessionStatusLabel(status: string) {
     return {
       Scheduled: 'Agendada',
@@ -797,8 +883,8 @@ export class WorkspacePageComponent {
   sessionTypeLabel(type: string) {
     return {
       Assessment: 'Avaliacao',
-      Intervention: 'Intervencao',
-      FollowUp: 'Seguimento',
+      Intervention: 'Terapia',
+      Reassessment: 'Reavaliacao',
     }[type] ?? type;
   }
 

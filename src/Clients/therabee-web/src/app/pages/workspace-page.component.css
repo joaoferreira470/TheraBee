@@ -184,6 +184,11 @@ h2 {
   font-size: 1.18rem;
 }
 
+h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .subtitle {
   max-width: 720px;
   margin-bottom: 0;
@@ -308,6 +313,46 @@ h2 {
 .stack {
   display: grid;
   gap: 10px;
+}
+
+.goal-group {
+  display: grid;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.goal-picker {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 247, 249, 0.82);
+}
+
+.goal-picker-list {
+  display: grid;
+  gap: 10px;
+}
+
+.goal-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.goal-toggle strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.goal-toggle small {
+  display: block;
+  color: var(--muted);
 }
 
 .separated {

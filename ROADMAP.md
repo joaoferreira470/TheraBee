@@ -38,21 +38,21 @@ Current backend has generic session types, but the product meaning needs to be r
 
 - [x] Generic `Assessment` session type exists.
 - [x] Generic `Intervention` session type exists.
-- [x] Generic `FollowUp` session type exists.
-- [ ] Rename or map `Intervention` to `TherapySession`.
-- [ ] Rename or map `FollowUp` to `ReassessmentSession`.
-- [ ] Enforce clinical behavior per session type.
+- [x] Generic `Reassessment` session type exists.
+- [x] Rename or map `Intervention` to `TherapySession`.
+- [x] Rename or map `Reassessment` to `ReassessmentSession`.
+- [x] Enforce clinical behavior per session type.
 
 ### Goal Types
 
 Goals should behave like reusable definitions owned by the patient, almost like clinical "classes". A session can attach instances of those goals over time.
 
-- [ ] `LongTermGoal`: macro clinical direction, usually defined and evaluated in assessment/reassessment sessions.
-- [ ] `ShortTermGoal`: operational goal, usually worked during therapy sessions.
-- [ ] `ShortTermGoal` can optionally reference a parent `LongTermGoal`.
-- [ ] Goals can be created independently from sessions.
-- [ ] Goals can be reused across multiple sessions.
-- [ ] Goals have area, priority, status, review date, and type.
+- [x] `LongTermGoal`: macro clinical direction, usually defined and evaluated in assessment/reassessment sessions.
+- [x] `ShortTermGoal`: operational goal, usually worked during therapy sessions.
+- [x] `ShortTermGoal` can optionally reference a parent `LongTermGoal`.
+- [x] Goals can be created independently from sessions.
+- [x] Goals can be reused across multiple sessions.
+- [x] Goals have area, priority, status, review date, and type.
 
 Recommended relationship:
 
@@ -70,11 +70,11 @@ Session
 
 The app should help the therapist pick the right goal presets based on session type.
 
-- [ ] When creating/editing an `AssessmentSession`, the goal picker should show `LongTermGoal` presets.
-- [ ] When creating/editing a `ReassessmentSession`, the goal picker should show `LongTermGoal` presets.
-- [ ] When creating/editing a `TherapySession`, the goal picker should show `ShortTermGoal` presets.
-- [ ] Frontend should filter goals contextually.
-- [ ] Backend should validate the selected goals against the session type.
+- [x] When creating/editing an `AssessmentSession`, the goal picker should show `LongTermGoal` presets.
+- [x] When creating/editing a `ReassessmentSession`, the goal picker should show `LongTermGoal` presets.
+- [x] When creating/editing a `TherapySession`, the goal picker should show `ShortTermGoal` presets.
+- [x] Frontend should filter goals contextually.
+- [x] Backend should validate the selected goals against the session type.
 
 ### Goal Assessment Scale
 
@@ -349,26 +349,26 @@ The Angular application should become a routed product rather than a single oper
 
 ### Phase 10: Clinical Goal Model
 
-- [ ] Add `GoalType` enum with `LongTerm` and `ShortTerm`.
-- [ ] Add optional parent goal relationship for short-term goals.
-- [ ] Update goal create/update DTOs and validators.
-- [ ] Update EF Core configuration and migrations.
-- [ ] Update goal endpoints and query responses.
-- [ ] Update Angular goal creation/editing UI.
-- [ ] Show goals grouped by type on patient page.
+- [x] Add `GoalType` enum with `LongTerm` and `ShortTerm`.
+- [x] Add optional parent goal relationship for short-term goals.
+- [x] Update goal create/update DTOs and validators.
+- [x] Update EF Core configuration and migrations.
+- [x] Update goal endpoints and query responses.
+- [x] Update Angular goal creation/editing UI.
+- [x] Show goals grouped by type on patient page.
 
 ### Phase 11: Clinical Session Model
 
 - [ ] Align session types with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
-- [ ] Add or map session type labels in backend and frontend.
-- [ ] Implement context-aware goal picker.
-- [ ] Filter long-term goals for assessment/reassessment sessions.
-- [ ] Filter short-term goals for therapy sessions.
-- [ ] Validate selected goals against session type in backend.
+- [x] Add or map session type labels in backend and frontend.
+- [x] Implement context-aware goal picker.
+- [x] Filter long-term goals for assessment/reassessment sessions.
+- [x] Filter short-term goals for therapy sessions.
+- [x] Validate selected goals against session type in backend.
 - [ ] Add schedule overlap validation for create/reschedule.
 - [ ] Define whether session removal means delete or cancel.
-- [ ] Build routed session page.
-- [ ] Allow session details to be edited and saved.
+- [x] Build routed session page.
+- [x] Allow session details to be edited and saved.
 
 ### Phase 12: Session Goal Assessments
 
@@ -417,8 +417,10 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Patient endpoints require authentication.
 - [x] Patients are associated with the authenticated therapist.
 - [x] Patient model supports the current MVP shape.
-- [x] Therapy goals are implemented without long/short type distinction.
-- [x] Sessions are implemented without final clinical session semantics.
+- [x] Therapy goals are implemented with `LongTerm` and `ShortTerm` types.
+- [x] Short-term goals can optionally reference a parent long-term goal.
+- [x] Session goal selection is validated against session type.
+- [x] Sessions are implemented with the current clinical-type mapping.
 - [x] Progress dashboards are implemented with current simplified metrics.
 - [x] Reports are implemented with current simplified data model.
 - [x] PDF export is implemented.
@@ -454,26 +456,24 @@ http://localhost:4200
 - [x] Angular client can run locally.
 - [x] Angular client is integrated with the backend API.
 - [x] Logo asset is present in the Angular public assets folder.
-- [ ] Angular client uses the target routed app structure.
+- [x] Angular client uses the target routed app structure.
 
 ## Next Logical Step
 
 The next implementation step is:
 
 ```text
-Phase 9: Real App Navigation
+Phase 11: Clinical Session Model
 ```
 
-After routing is in place, the backend should move toward:
+After the goal model is in place, the product should move toward:
 
 ```text
-Phase 10: Clinical Goal Model
-Phase 11: Clinical Session Model
-Phase 12: Session Goal Assessments
+Session model semantics -> session goal assessments -> dashboards -> visual reports
 ```
 
 This sequence keeps the product usable while progressively aligning the data model with the clinical workflow:
 
 ```text
-Long-term goals -> short-term goals -> session goal assessments -> dashboards -> visual reports
+Long-term goals -> short-term goals -> contextual session goal selection -> session goal assessments -> dashboards -> visual reports
 ```

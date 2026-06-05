@@ -8,6 +8,8 @@ public static class TherapeuticGoalExtensions
             Id: goal.Id,
             PatientId: goal.PatientId,
             TherapistId: goal.TherapistId,
+            ParentGoalId: goal.ParentGoalId,
+            Type: goal.Type,
             Description: goal.Description,
             Area: goal.Area,
             Priority: goal.Priority,

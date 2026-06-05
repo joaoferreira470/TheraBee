@@ -34,9 +34,14 @@ public class CreateSessionHandler(IApplicationDbContext dbContext, ICurrentUserS
 
         if (goalIds.Length > 0)
         {
+            var expectedGoalType = command.Session.Type == SessionType.Intervention
+                ? TherapeuticGoalType.ShortTerm
+                : TherapeuticGoalType.LongTerm;
+
             var goals = await dbContext.TherapeuticGoals
                 .Where(goal => goal.TherapistId == currentUserId
                     && goal.PatientId == command.PatientId
+                    && goal.Type == expectedGoalType
                     && goalIds.Contains(goal.Id))
                 .Select(goal => goal.Id)
                 .ToListAsync(cancellationToken);

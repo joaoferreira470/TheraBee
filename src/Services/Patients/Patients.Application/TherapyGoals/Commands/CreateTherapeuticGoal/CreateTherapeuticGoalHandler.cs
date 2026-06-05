@@ -23,10 +23,26 @@ public class CreateTherapeuticGoalHandler(IApplicationDbContext dbContext, ICurr
             id: Guid.NewGuid(),
             patientId: command.PatientId,
             therapistId: currentUserId,
+            type: command.Goal.Type,
+            parentGoalId: command.Goal.ParentGoalId,
             description: command.Goal.Description.Trim(),
             area: command.Goal.Area.Trim(),
             priority: command.Goal.Priority,
             reviewDate: command.Goal.ReviewDate);
+
+        if (command.Goal.ParentGoalId is Guid parentGoalId)
+        {
+            var parentGoal = await dbContext.TherapeuticGoals
+                .FirstOrDefaultAsync(goal => goal.Id == parentGoalId
+                    && goal.PatientId == command.PatientId
+                    && goal.TherapistId == currentUserId,
+                    cancellationToken);
+
+            if (parentGoal == null || parentGoal.Type != TherapeuticGoalType.LongTerm)
+            {
+                throw new InvalidOperationException("Short-term goals must reference an existing long-term goal for the same patient.");
+            }
+        }
 
         dbContext.TherapeuticGoals.Add(goal);
         await dbContext.SaveChangesAsync(cancellationToken);
