@@ -251,8 +251,8 @@ The Angular application should become a routed product rather than a single oper
 - [x] Progress dashboard exists in current simplified form.
 - [x] Report builder/export workflow exists.
 - [x] UI is responsive for desktop, tablet, and mobile.
-- [ ] Angular uses real routes for login, therapist hub, patient page, and session page.
-- [ ] Patient edit screen calls the backend.
+- [x] Angular uses real routes for login, therapist hub, patient page, and session page.
+- [x] Patient edit screen calls the backend.
 - [ ] Goal create/edit UI supports goal type and parent goal.
 - [ ] Session create/edit UI uses context-aware goal picker.
 - [ ] Session page supports goal scoring 0-10.
@@ -337,15 +337,15 @@ The Angular application should become a routed product rather than a single oper
 
 ### Phase 9: Real App Navigation
 
-- [ ] Create Angular routes for `/login`, `/register`, `/therapist`, `/patients/:patientId`, and `/patients/:patientId/sessions/:sessionId`.
-- [ ] Redirect authenticated users to therapist hub after login.
-- [ ] Redirect unauthenticated users to login.
-- [ ] Build therapist hub page titled `Therapist X`.
-- [ ] Show therapist-owned patient list in hub.
+- [x] Create Angular routes for `/login`, `/register`, `/therapist`, `/patients/:patientId`, and `/patients/:patientId/sessions/:sessionId`.
+- [x] Redirect authenticated users to therapist hub after login.
+- [x] Redirect unauthenticated users to login.
+- [x] Build therapist hub page titled `Therapist X`.
+- [x] Show therapist-owned patient list in hub.
 - [ ] Add edit/delete/archive patient actions in hub.
-- [ ] Show therapist schedule in hub.
-- [ ] Navigate from patient name to patient page.
-- [ ] Navigate from therapist name to therapist hub.
+- [x] Show therapist schedule in hub.
+- [x] Navigate from patient name to patient page.
+- [x] Navigate from therapist name to therapist hub.
 
 ### Phase 10: Clinical Goal Model
 
