@@ -50,13 +50,13 @@ This keeps the architecture practical while focusing development on the painful 
 
 - [x] Current Patients service exists.
 - [x] Basic patient CRUD exists.
-- [x] Address and diagnosis fields exist.
+- [x] Address and main diagnosis fields exist.
 - [x] Patient status exists.
 - [x] Archive/inactivate flow exists.
 - [x] Duplicate detection exists for patient creation.
 - [x] Therapist ownership is enforced on patient operations.
-- [ ] Patient model supports the full MVP shape.
-- [ ] Patient detail endpoint exposes all data needed by the Angular patient profile.
+- [x] Patient model supports the full MVP shape.
+- [x] Patient detail endpoint exposes all data needed by the Angular patient profile.
 - [ ] Patient search/filtering supports name, status, diagnosis, age, and future-session gaps.
 
 ### Therapy Goals
@@ -133,7 +133,7 @@ This keeps the architecture practical while focusing development on the painful 
 - [x] Enforce authenticated therapist ownership on patient operations.
 - [x] Add patient status and archive/inactivate flow.
 - [x] Add duplicate detection for patient creation.
-- [ ] Expand patient model to the full MVP shape.
+- [x] Expand patient model to the full MVP shape.
 - [ ] Add richer filtering and ownership-aware search across all patient endpoints.
 
 ### Phase 4: Therapy Goals
@@ -200,6 +200,7 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Patients API can build and run locally with Docker/PostgreSQL.
 - [x] Patient endpoints require authentication.
 - [x] Patients are associated with the authenticated therapist.
+- [x] Patient model supports the full MVP shape.
 - [ ] Sessions are implemented.
 - [ ] Therapy goals are implemented.
 - [ ] Reports are implemented.
@@ -244,10 +245,10 @@ http://localhost:4200
 
 ## Next Logical Step
 
-The next implementation step is still:
+The next implementation step is now:
 
 ```text
-Phase 3: Patients V2 -> Expand patient model to the full MVP shape
+Phase 4: Therapy Goals -> Add therapeutic goal model
 ```
 
 After that, the roadmap should move toward:

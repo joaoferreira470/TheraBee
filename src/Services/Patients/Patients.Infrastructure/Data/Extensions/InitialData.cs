@@ -16,7 +16,13 @@ internal class InitialData
                                     patientAddress: address1,
                                     "Sofre de pouca de extrema bossidão",
                                     "Extremamente lindo em geral",
-                                    Guid.Parse("F372455A-C80C-487C-85A6-C5C6F18A83A8")
+                                    Guid.Parse("F372455A-C80C-487C-85A6-C5C6F18A83A8"),
+                                    gender: "Male",
+                                    phoneNumber: "910000001",
+                                    email: "joao@example.com",
+                                    caregiverName: "Maria",
+                                    caregiverPhone: "910000010",
+                                    referralReason: "Initial assessment"
                                     );
 
             var patient2 = Patient.Create(
@@ -26,7 +32,13 @@ internal class InitialData
                                     patientAddress: address2,
                                     "Sofre de incapacidade de parar de trabalhar",
                                     "Pinguina super linda",
-                                    Guid.Parse("F372455A-C80C-487C-85A6-C5C6F18A83A8")
+                                    Guid.Parse("F372455A-C80C-487C-85A6-C5C6F18A83A8"),
+                                    gender: "Female",
+                                    phoneNumber: "910000002",
+                                    email: "neuza@example.com",
+                                    caregiverName: "Carlos",
+                                    caregiverPhone: "910000011",
+                                    referralReason: "Follow-up"
                                     );
 
             return new List<Patient> { patient1, patient2 };

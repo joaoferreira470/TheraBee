@@ -22,6 +22,31 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.DateOfBirth)
             .IsRequired();
 
+        builder.Property(p => p.MainDiagnosis)
+            .HasMaxLength(500)
+            .IsRequired();
+
+        builder.Property(p => p.Gender)
+            .HasMaxLength(50);
+
+        builder.Property(p => p.PhoneNumber)
+            .HasMaxLength(40);
+
+        builder.Property(p => p.Email)
+            .HasMaxLength(254);
+
+        builder.Property(p => p.CaregiverName)
+            .HasMaxLength(150);
+
+        builder.Property(p => p.CaregiverPhone)
+            .HasMaxLength(40);
+
+        builder.Property(p => p.ReferralReason)
+            .HasMaxLength(500);
+
+        builder.Property(p => p.GeneralNotes)
+            .HasMaxLength(1000);
+
         builder.ComplexProperty(
             p => p.PatientAddress, addressBuilder =>
             {
@@ -39,14 +64,6 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
                                         .HasMaxLength(8)
                                         .IsRequired();
             });
-
-        builder.Property(p => p.Diagnosis)
-            .HasMaxLength(500)
-            .IsRequired();
-
-        builder.Property(p => p.Info)
-            .HasMaxLength(500)
-            .IsRequired();
 
         builder.Property(p => p.Status)
             .HasConversion<string>()

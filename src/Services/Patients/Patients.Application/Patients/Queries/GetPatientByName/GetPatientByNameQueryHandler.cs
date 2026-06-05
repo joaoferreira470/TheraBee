@@ -21,19 +21,7 @@ public class GetPatientByNameQueryHandler(IApplicationDbContext dbContext, ICurr
             throw new PatientNotFoundException(query.Name);
         }
 
-        var patientDto = new PatientDto(
-            Id: patient.Id.Value,
-            Name: patient.Name,
-            DateOfBirth: patient.DateOfBirth,
-            PatientAddress: new AddressDto(
-                patient.PatientAddress.AddressLine,
-                patient.PatientAddress.District,
-                patient.PatientAddress.Location,
-                patient.PatientAddress.ZipCode),
-            Diagnosis: patient.Diagnosis,
-            Info: patient.Info,
-            TherapistId: patient.TherapistId,
-            Status: patient.Status);
+        var patientDto = patient.ToPatientDto();
 
         return new GetPatientByNameResult(patientDto);
     }

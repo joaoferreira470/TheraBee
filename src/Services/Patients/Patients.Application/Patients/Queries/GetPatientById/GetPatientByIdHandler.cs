@@ -17,19 +17,7 @@ public class GetPatientByIdHandler(IApplicationDbContext dbContext, ICurrentUser
             throw new PatientNotFoundException(query.Id.Value);
         }
 
-        var patientDto = new PatientDto(
-            Id: patient.Id.Value,
-            Name: patient.Name,
-            DateOfBirth: patient.DateOfBirth,
-            PatientAddress: new AddressDto(
-                patient.PatientAddress.AddressLine,
-                patient.PatientAddress.District,
-                patient.PatientAddress.Location,
-                patient.PatientAddress.ZipCode),
-            Diagnosis: patient.Diagnosis,
-            Info: patient.Info,
-            TherapistId: patient.TherapistId,
-            Status: patient.Status);
+        var patientDto = patient.ToPatientDto();
 
         return new GetPatientByIdResult(patientDto);
     }

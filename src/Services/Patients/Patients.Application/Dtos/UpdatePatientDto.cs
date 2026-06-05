@@ -5,5 +5,11 @@ public record UpdatePatientDto(
     string Name,
     DateTime DateOfBirth,
     AddressDto PatientAddress,
-    string Diagnosis,
-    string Info);
+    string MainDiagnosis,
+    string? Gender,
+    string? PhoneNumber,
+    string? Email,
+    string? CaregiverName,
+    string? CaregiverPhone,
+    string? ReferralReason,
+    string? GeneralNotes);

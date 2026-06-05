@@ -38,9 +38,21 @@ public class UpdatePatientHandler(IApplicationDbContext dbContext, ICurrentUserS
                         patientDto.Name.Trim(),
                         patientDto.DateOfBirth,
                         updatedPatientAddress,
-                        patientDto.Diagnosis,
-                        patientDto.Info,
-                        patient.TherapistId
+                        patientDto.MainDiagnosis,
+                        NormalizeOptional(patientDto.GeneralNotes),
+                        patient.TherapistId,
+                        NormalizeOptional(patientDto.Gender),
+                        NormalizeOptional(patientDto.PhoneNumber),
+                        NormalizeEmail(patientDto.Email),
+                        NormalizeOptional(patientDto.CaregiverName),
+                        NormalizeOptional(patientDto.CaregiverPhone),
+                        NormalizeOptional(patientDto.ReferralReason)
                         );
     }
+
+    private static string? NormalizeOptional(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? NormalizeEmail(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
 }

@@ -8,9 +8,9 @@ public class GetDuplicatePatients : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients/duplicates", async (string name, DateTime dateOfBirth, ISender sender) =>
+        app.MapGet("/patients/duplicates", async (string name, DateTime dateOfBirth, string? phoneNumber, string? email, ISender sender) =>
         {
-            var result = await sender.Send(new GetDuplicatePatientsQuery(name, dateOfBirth));
+            var result = await sender.Send(new GetDuplicatePatientsQuery(name, dateOfBirth, phoneNumber, email));
             var response = result.Adapt<GetDuplicatePatientsResponse>();
 
             return Results.Ok(response);

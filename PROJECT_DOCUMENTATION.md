@@ -5,6 +5,7 @@
 TheraBee is a .NET 8 backend project currently focused on therapist authentication, therapist profile management, and patient management. The solution is organized with a layered architecture and exposes a Patients API backed by PostgreSQL.
 
 The current service lets therapists register, log in, manage their own professional profile, and create, update, delete, list, and search patients. Each patient belongs to a therapist through `TherapistId` and stores basic clinical and address information.
+The current service now also exposes a richer patient shape with contact details, caregiver details, a main diagnosis, referral reason, general notes, and a calculated age in read models.
 
 ## Current Scope
 
@@ -181,10 +182,18 @@ A patient currently has:
 - `id`: patient identifier.
 - `name`: patient name.
 - `dateOfBirth`: patient birth date.
+- `calculatedAge`: age derived at read time.
+- `gender`: optional patient gender.
+- `phoneNumber`: optional contact number.
+- `email`: optional contact email.
 - `patientAddress`: address object.
-- `diagnosis`: clinical diagnosis text.
-- `info`: extra information.
+- `caregiverName`: optional caregiver/responsible name.
+- `caregiverPhone`: optional caregiver contact number.
+- `mainDiagnosis`: clinical diagnosis text.
+- `referralReason`: optional reason for referral.
+- `generalNotes`: extra clinical notes.
 - `therapistId`: therapist identifier.
+- `status`: active/inactive/discharged/suspended.
 
 Address fields:
 
@@ -366,14 +375,21 @@ Expected response shape:
         "id": "00000000-0000-0000-0000-000000000000",
         "name": "Joao",
         "dateOfBirth": "1992-03-14T00:00:00Z",
+        "calculatedAge": 34,
         "patientAddress": {
           "addressLine": "Rua Agolada n50",
           "district": "Santarem",
           "location": "Vale Mansos",
           "zipCode": "2100-049"
         },
-        "diagnosis": "Example diagnosis",
-        "info": "Example info",
+        "mainDiagnosis": "Example diagnosis",
+        "gender": "Male",
+        "phoneNumber": "910000001",
+        "email": "joao@example.com",
+        "caregiverName": "Maria",
+        "caregiverPhone": "910000010",
+        "referralReason": "Initial assessment",
+        "generalNotes": "Example notes",
         "therapistId": "f372455a-c80c-487c-85a6-c5c6f18a83a8"
       }
     ]
@@ -440,9 +456,14 @@ Body:
       "location": "Lisboa",
       "zipCode": "1000-001"
     },
-    "diagnosis": "Initial diagnosis notes",
-    "info": "Additional patient information",
-    "therapistId": "f372455a-c80c-487c-85a6-c5c6f18a83a8"
+    "mainDiagnosis": "Initial diagnosis notes",
+    "gender": "Female",
+    "phoneNumber": "+351910000000",
+    "email": "maria.silva@example.com",
+    "caregiverName": "Joao Silva",
+    "caregiverPhone": "+351910000001",
+    "referralReason": "Referral from school",
+    "generalNotes": "Additional patient information"
   }
 }
 ```
@@ -460,9 +481,14 @@ $body = @{
       location = "Lisboa"
       zipCode = "1000-001"
     }
-    diagnosis = "Initial diagnosis notes"
-    info = "Additional patient information"
-    therapistId = "f372455a-c80c-487c-85a6-c5c6f18a83a8"
+    mainDiagnosis = "Initial diagnosis notes"
+    gender = "Female"
+    phoneNumber = "+351910000000"
+    email = "maria.silva@example.com"
+    caregiverName = "Joao Silva"
+    caregiverPhone = "+351910000001"
+    referralReason = "Referral from school"
+    generalNotes = "Additional patient information"
   }
 } | ConvertTo-Json -Depth 4
 
@@ -497,9 +523,14 @@ Body:
       "location": "Lisboa",
       "zipCode": "1000-001"
     },
-    "diagnosis": "Updated diagnosis notes",
-    "info": "Updated patient information",
-    "therapistId": "f372455a-c80c-487c-85a6-c5c6f18a83a8"
+    "mainDiagnosis": "Updated diagnosis notes",
+    "gender": "Female",
+    "phoneNumber": "+351910000000",
+    "email": "maria.silva@example.com",
+    "caregiverName": "Joao Silva",
+    "caregiverPhone": "+351910000001",
+    "referralReason": "Updated referral reason",
+    "generalNotes": "Updated patient information"
   }
 }
 ```
@@ -518,9 +549,14 @@ $body = @{
       location = "Lisboa"
       zipCode = "1000-001"
     }
-    diagnosis = "Updated diagnosis notes"
-    info = "Updated patient information"
-    therapistId = "f372455a-c80c-487c-85a6-c5c6f18a83a8"
+    mainDiagnosis = "Updated diagnosis notes"
+    gender = "Female"
+    phoneNumber = "+351910000000"
+    email = "maria.silva@example.com"
+    caregiverName = "Joao Silva"
+    caregiverPhone = "+351910000001"
+    referralReason = "Updated referral reason"
+    generalNotes = "Updated patient information"
   }
 } | ConvertTo-Json -Depth 4
 
@@ -563,11 +599,14 @@ Create patient currently validates:
 - `dateOfBirth` is required.
 - `dateOfBirth` cannot be in the future.
 - `patientAddress` is required.
-- `therapistId` cannot be empty.
+- `mainDiagnosis` is required.
+- `email` must be valid when provided.
 
 Update patient currently validates:
 
 - `id` is required.
+- `mainDiagnosis` is required.
+- `email` must be valid when provided.
 
 The domain address value object also requires:
 
