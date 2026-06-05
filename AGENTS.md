@@ -67,4 +67,7 @@ Use these commands from the repo root:
 - If something is unclear, inspect the local files first instead of guessing.
 - Permission to execute "gets" in order to solve an issue is always granted.
 - Always ask permission before performing any commits.
+- Everytime a commit is made check "ROADMAP.md" and check/uncheck any steps accordingly.
+- Always try to implement features segregated by Phases accordingly with "ROADMAP.md".
+- Always ask for permission to implement a new "ROADMAP.md" phase and specify which one.
 
