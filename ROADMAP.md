@@ -65,7 +65,7 @@ This keeps the architecture practical while focusing development on the painful 
 - [x] Goals can be created for a patient.
 - [x] Goals include area, priority, status, and review date.
 - [x] Goals can be associated with completed sessions.
-- [ ] Goal progress can be summarized over time.
+- [x] Goal progress can be summarized over time.
 
 ### Sessions And Checkpoints
 
@@ -81,12 +81,12 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Progress Dashboards
 
-- [ ] Patient progress summary exists.
-- [ ] Attendance indicators exist.
-- [ ] Goal progress indicators exist.
-- [ ] Last and next session indicators exist.
-- [ ] Dashboard data can be consumed by Angular.
-- [ ] Dashboard data can be reused by reports.
+- [x] Patient progress summary exists.
+- [x] Attendance indicators exist.
+- [x] Goal progress indicators exist.
+- [x] Last and next session indicators exist.
+- [x] Dashboard data can be consumed by Angular.
+- [x] Dashboard data can be reused by reports.
 
 ### Reports
 
@@ -154,11 +154,11 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Phase 6: Progress Dashboard
 
-- [ ] Add patient progress summary query.
-- [ ] Add attendance metrics.
-- [ ] Add goal progress metrics.
-- [ ] Add sessions pending registration query.
-- [ ] Make dashboard data report-ready.
+- [x] Add patient progress summary query.
+- [x] Add attendance metrics.
+- [x] Add goal progress metrics.
+- [x] Add sessions pending registration query.
+- [x] Make dashboard data report-ready.
 
 ### Phase 7: Reports And PDF
 
@@ -203,6 +203,7 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Patient model supports the full MVP shape.
 - [x] Therapy goals are implemented.
 - [x] Sessions are implemented.
+- [x] Progress dashboards are implemented.
 - [ ] Reports are implemented.
 - [ ] PDF export is implemented.
 
@@ -248,13 +249,13 @@ http://localhost:4200
 The next implementation step is now:
 
 ```text
-Phase 6: Progress Dashboard -> Add patient progress summary query
+Phase 7: Reports And PDF -> Add report model
 ```
 
 After that, the roadmap should move toward:
 
 ```text
-Progress Dashboard -> Reports And PDF
+Reports And PDF
 ```
 
 This sequence protects the key product idea: every session should produce structured data that later reduces report-writing effort and feeds visual progress explanations.
