@@ -8,9 +8,9 @@ The first milestone should prove the core clinical workflow before the system gr
 
 ## Planning Documents
 
-- `PRODUCT_REQUIREMENTS.md`: full product requirements and long-term vision.
-- `MVP_SCOPE.md`: reduced first-version scope to implement.
-- `BACKEND_IMPLEMENTATION_PLAN.md`: backend phases, modules, branches, and suggested endpoints.
+- [x] `PRODUCT_REQUIREMENTS.md`: full product requirements and long-term vision.
+- [x] `MVP_SCOPE.md`: reduced first-version scope to implement.
+- [x] `BACKEND_IMPLEMENTATION_PLAN.md`: backend phases, modules, branches, and suggested endpoints.
 
 ## Recommended Strategy
 
@@ -20,68 +20,86 @@ Start with a modular backend and a simple frontend prototype. Keep the architect
 
 ### Patients
 
-Current service. Handles patient records, address, diagnosis, therapist association, and basic CRUD.
+- [x] Current service exists.
+- [x] Basic patient CRUD exists.
+- [x] Address and diagnosis fields exist.
+- [ ] Therapist ownership is enforced through authenticated user.
+- [ ] Patients v2 richer model is implemented.
 
 ### Therapists
 
-Next recommended domain. Handles therapist profiles, professional details, specialties, and ownership of patients/sessions.
+- [x] Therapist profile domain now exists.
+- [x] Professional details and specialties can be stored.
+- [ ] Ownership of patients is enforced end-to-end.
+- [ ] Ownership of sessions is enforced end-to-end.
 
 ### Sessions
 
-Third recommended domain. Handles scheduled sessions, session status, session notes, and patient progress history.
+- [ ] Session domain exists.
+- [ ] Scheduling endpoints exist.
+- [ ] Session status exists.
+- [ ] Session notes exist.
+- [ ] Patient progress history exists.
 
 ### Clinical Notes
 
-Can begin inside Sessions. Split later if notes become complex, auditable, versioned, or permission-heavy.
+- [ ] Clinical notes started inside Sessions.
+- [ ] Split into dedicated module if complexity grows later.
 
 ### Identity
 
-Needed before real users or online testing with private data. Keep test deployments with fake data only until authentication and privacy rules are in place.
+- [x] Authentication foundation exists.
+- [x] Therapist registration/login/logout exists.
+- [x] JWT-based access control exists for therapist profile endpoints.
+- [ ] Broader authorization rules exist across all clinical modules.
+- [ ] Production-ready auth/privacy model exists.
 
 ## Implementation Phases
 
 ### Phase 1: Planning And Prototype
 
-- Create a simplified UI prototype.
-- Define the first workflows.
-- Decide MVP entities and API contracts.
-- Keep all existing backend code stable.
+- [x] Create a simplified UI prototype.
+- [x] Define the first workflows.
+- [x] Decide MVP entities and API contracts.
+- [x] Keep all existing backend code stable.
 
-### Phase 2: Therapists
+### Phase 2: Auth And Therapists
 
-- Add therapist model.
-- Add therapist CRUD.
-- Link patients to real therapist records.
-- Add seed data for local development.
+- [x] Add therapist model.
+- [x] Add therapist registration and login.
+- [x] Add therapist profile read/update endpoints.
+- [x] Add password hashing and JWT authentication.
+- [ ] Link patients to authenticated therapist ownership.
+- [ ] Add therapist-oriented local seed data if still useful.
 
 ### Phase 3: Sessions
 
-- Add session model.
-- Add scheduling/listing endpoints.
-- Add session notes.
-- Link sessions to patients and therapists.
+- [ ] Add session model.
+- [ ] Add scheduling/listing endpoints.
+- [ ] Add session notes.
+- [ ] Link sessions to patients and therapists.
 
 ### Phase 4: Angular Frontend
 
-- Angular client created under `src/Clients/therabee-web`.
-- Start with dashboard, patients, patient detail, sessions, and notes.
-- Use the backend API through typed client services.
+- [x] Angular client created under `src/Clients/therabee-web`.
+- [ ] Start with dashboard, patients, patient detail, sessions, and notes.
+- [ ] Use the backend API through typed client services.
 
 ### Phase 5: Online Test Deployment
 
-- Deploy only with fake data.
-- Use a free or low-cost static host for frontend.
-- Use a free or low-cost backend/database provider for temporary testing.
-- Add authentication before handling anything sensitive.
+- [ ] Deploy only with fake data.
+- [ ] Use a free or low-cost static host for frontend.
+- [ ] Use a free or low-cost backend/database provider for temporary testing.
+- [x] Add authentication before handling anything sensitive.
 
 ## Branching Rule
 
 Before changing existing code, create or switch to a branch that matches the intent:
 
-- `planning/*` for documentation, roadmap, or prototype work.
-- `feature/*` for implementation work.
-- `fix/*` for bug fixes.
-- `chore/*` for tooling and setup.
+- [x] `planning/*` for documentation, roadmap, or prototype work.
+- [x] `feature/*` for implementation work.
+- [ ] `fix/*` for bug fixes.
+- [ ] `chore/*` for tooling and setup.
 
 ## Current Prototype
 
@@ -92,6 +110,9 @@ prototype/therabee-mvp
 ```
 
 It is dependency-free and can be opened directly through `index.html`.
+
+- [x] Prototype folder exists.
+- [x] Prototype can be opened directly.
 
 ## Current Angular Client
 
@@ -114,3 +135,7 @@ The default development URL is:
 ```text
 http://localhost:4200
 ```
+
+- [x] Angular client exists locally.
+- [x] Angular client can run locally.
+- [ ] Angular client is integrated with the backend API.
