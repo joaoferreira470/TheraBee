@@ -27,6 +27,20 @@ public class CreateSessionHandler(IApplicationDbContext dbContext, ICurrentUserS
             type: command.Session.Type,
             location: command.Session.Location);
 
+        var hasSchedulingConflict = await dbContext.Sessions
+            .AsNoTracking()
+            .AnyAsync(
+                existingSession => existingSession.TherapistId == currentUserId
+                    && (existingSession.Status == SessionStatus.Scheduled || existingSession.Status == SessionStatus.Rescheduled)
+                    && existingSession.StartDateTime < command.Session.EndDateTime
+                    && existingSession.EndDateTime > command.Session.StartDateTime,
+                cancellationToken);
+
+        if (hasSchedulingConflict)
+        {
+            throw new SessionSchedulingConflictException(command.Session.StartDateTime, command.Session.EndDateTime);
+        }
+
         var goalIds = command.Session.GoalIds?
             .Where(goalId => goalId != Guid.Empty)
             .Distinct()

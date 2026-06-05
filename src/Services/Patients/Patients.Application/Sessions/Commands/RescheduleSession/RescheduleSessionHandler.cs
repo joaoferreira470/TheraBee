@@ -16,6 +16,21 @@ public class RescheduleSessionHandler(IApplicationDbContext dbContext, ICurrentU
             throw new SessionNotFoundException(command.SessionId);
         }
 
+        var hasSchedulingConflict = await dbContext.Sessions
+            .AsNoTracking()
+            .AnyAsync(
+                otherSession => otherSession.TherapistId == currentUserId
+                    && otherSession.Id != command.SessionId
+                    && (otherSession.Status == SessionStatus.Scheduled || otherSession.Status == SessionStatus.Rescheduled)
+                    && otherSession.StartDateTime < command.Session.EndDateTime
+                    && otherSession.EndDateTime > command.Session.StartDateTime,
+                cancellationToken);
+
+        if (hasSchedulingConflict)
+        {
+            throw new SessionSchedulingConflictException(command.Session.StartDateTime, command.Session.EndDateTime);
+        }
+
         session.Reschedule(
             command.Session.StartDateTime,
             command.Session.EndDateTime,

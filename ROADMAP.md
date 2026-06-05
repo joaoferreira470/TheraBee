@@ -188,16 +188,16 @@ The Angular application should become a routed product rather than a single oper
 - [x] Session notes exist.
 - [x] Session history can be listed by patient.
 - [x] Sessions pending registration can be identified.
-- [ ] Session model is aligned with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
+- [x] Session model is aligned with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
 - [x] Sessions can attach areas or objectives according to session type.
 - [x] Session goal selection validates patient and therapist ownership.
 - [x] Assessment and reassessment sessions accept only areas.
 - [x] Therapeutic sessions accept only objectives.
-- [ ] Session page exists in Angular.
-- [ ] Session page title follows `Session X | Patient Name, Age`.
-- [ ] Session details can be edited and saved.
-- [ ] Session reschedule validates therapist schedule overlap.
-- [ ] Session cancel/delete behavior is clearly defined.
+- [x] Session page exists in Angular.
+- [x] Session page title follows `Session X | Patient Name, Age`.
+- [x] Session details can be edited and saved.
+- [x] Session reschedule validates therapist schedule overlap.
+- [x] Session cancel/delete behavior is clearly defined.
 
 ### Session Goal Assessments
 
@@ -365,14 +365,14 @@ The Angular application should become a routed product rather than a single oper
 
 ### Phase 11: Clinical Session Model
 
-- [ ] Align session types with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
+- [x] Align session types with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
 - [x] Add or map session type labels in backend and frontend.
 - [x] Implement context-aware goal picker.
 - [x] Show areas for assessment/reassessment sessions and objectives for therapeutic sessions.
 - [x] Validate selected areas/objectives belong to the same patient and therapist.
 - [x] Validate selected goals against session type in backend.
-- [ ] Add schedule overlap validation for create/reschedule.
-- [ ] Define whether session removal means delete or cancel.
+- [x] Add schedule overlap validation for create/reschedule.
+- [x] Define whether session removal means delete or cancel.
 - [x] Build routed session page.
 - [x] Allow session details to be edited and saved.
 
@@ -434,7 +434,7 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Report deletion/discard is implemented.
 - [ ] Goal scoring 0-10 is implemented.
 - [ ] Reports by date interval are implemented.
-- [ ] Schedule overlap validation is implemented.
+- [x] Schedule overlap validation is implemented.
 
 ## Current Angular Client
 
@@ -469,13 +469,13 @@ http://localhost:4200
 The next implementation step is:
 
 ```text
-Phase 11: Clinical Session Model
+Phase 12: Session Goal Assessments
 ```
 
-After the goal model is in place, the product should move toward:
+After the session model is in place, the product should move toward:
 
 ```text
-Session model semantics -> session goal assessments -> dashboards -> visual reports
+Session goal assessments -> dashboards -> visual reports
 ```
 
 This sequence keeps the product usable while progressively aligning the data model with the clinical workflow:

@@ -590,8 +590,8 @@ export class App {
   sessionTypeLabel(type: string) {
     return {
       Assessment: 'Avaliacao',
-      Intervention: 'Intervencao',
-      FollowUp: 'Seguimento',
+      Intervention: 'Terapia',
+      Reassessment: 'Reavaliacao',
     }[type] ?? type;
   }
 

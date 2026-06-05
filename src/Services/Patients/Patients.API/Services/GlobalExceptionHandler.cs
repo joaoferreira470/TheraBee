@@ -39,6 +39,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 "Not found",
                 sessionNotFoundException.Message,
                 Array.Empty<object>()),
+            SessionSchedulingConflictException sessionSchedulingConflictException => (
+                StatusCodes.Status409Conflict,
+                "Schedule conflict",
+                sessionSchedulingConflictException.Message,
+                Array.Empty<object>()),
             ReportNotFoundException reportNotFoundException => (
                 StatusCodes.Status404NotFound,
                 "Not found",
