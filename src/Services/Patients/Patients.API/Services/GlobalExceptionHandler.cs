@@ -34,6 +34,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 "Not found",
                 therapeuticGoalNotFoundException.Message,
                 Array.Empty<object>()),
+            SessionNotFoundException sessionNotFoundException => (
+                StatusCodes.Status404NotFound,
+                "Not found",
+                sessionNotFoundException.Message,
+                Array.Empty<object>()),
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
                 "Not found",

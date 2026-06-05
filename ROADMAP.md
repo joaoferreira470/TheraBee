@@ -42,7 +42,7 @@ This keeps the architecture practical while focusing development on the painful 
 - [x] Therapist profile domain exists.
 - [x] Professional details and specialties can be stored.
 - [x] Patient ownership is enforced through authenticated therapist.
-- [ ] Session ownership is enforced end-to-end.
+- [x] Session ownership is enforced end-to-end.
 - [ ] Report ownership is enforced end-to-end.
 - [ ] Production-ready auth/privacy model exists.
 
@@ -64,20 +64,20 @@ This keeps the architecture practical while focusing development on the painful 
 - [x] Therapy goal domain exists.
 - [x] Goals can be created for a patient.
 - [x] Goals include area, priority, status, and review date.
-- [ ] Goals can be associated with completed sessions.
+- [x] Goals can be associated with completed sessions.
 - [ ] Goal progress can be summarized over time.
 
 ### Sessions And Checkpoints
 
-- [ ] Session domain exists.
-- [ ] Scheduling endpoints exist.
-- [ ] Session status exists.
-- [ ] Session type exists.
-- [ ] Session notes exist.
-- [ ] Structured session checkpoints exist.
-- [ ] Checkpoints can record objectives worked, progress rating, activities, patient response, difficulties, recommendations, and next steps.
-- [ ] Session history can be listed by patient.
-- [ ] Sessions pending registration can be identified.
+- [x] Session domain exists.
+- [x] Scheduling endpoints exist.
+- [x] Session status exists.
+- [x] Session type exists.
+- [x] Session notes exist.
+- [x] Structured session checkpoints exist.
+- [x] Checkpoints can record objectives worked, progress rating, activities, patient response, difficulties, recommendations, and next steps.
+- [x] Session history can be listed by patient.
+- [x] Sessions pending registration can be identified.
 
 ### Progress Dashboards
 
@@ -141,16 +141,16 @@ This keeps the architecture practical while focusing development on the painful 
 - [x] Add therapeutic goal model.
 - [x] Add goal create/list/update/status endpoints.
 - [x] Link goals to patient and therapist ownership.
-- [ ] Prepare goals to be referenced by sessions and reports.
+- [x] Prepare goals to be referenced by sessions and reports.
 
 ### Phase 5: Sessions And Checkpoints
 
-- [ ] Add session model.
-- [ ] Add scheduling/listing endpoints.
-- [ ] Add cancel/reschedule/complete session endpoints.
-- [ ] Add structured checkpoint fields for completed sessions.
-- [ ] Link sessions to patients, therapists, and goals.
-- [ ] Expose patient session history.
+- [x] Add session model.
+- [x] Add scheduling/listing endpoints.
+- [x] Add cancel/reschedule/complete session endpoints.
+- [x] Add structured checkpoint fields for completed sessions.
+- [x] Link sessions to patients, therapists, and goals.
+- [x] Expose patient session history.
 
 ### Phase 6: Progress Dashboard
 
@@ -202,7 +202,7 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Patients are associated with the authenticated therapist.
 - [x] Patient model supports the full MVP shape.
 - [x] Therapy goals are implemented.
-- [ ] Sessions are implemented.
+- [x] Sessions are implemented.
 - [ ] Reports are implemented.
 - [ ] PDF export is implemented.
 
@@ -248,13 +248,13 @@ http://localhost:4200
 The next implementation step is now:
 
 ```text
-Phase 5: Sessions And Checkpoints -> Add session model and structured checkpoint workflow
+Phase 6: Progress Dashboard -> Add patient progress summary query
 ```
 
 After that, the roadmap should move toward:
 
 ```text
-Therapy Goals -> Sessions And Checkpoints -> Progress Dashboard -> Reports And PDF
+Progress Dashboard -> Reports And PDF
 ```
 
 This sequence protects the key product idea: every session should produce structured data that later reduces report-writing effort and feeds visual progress explanations.

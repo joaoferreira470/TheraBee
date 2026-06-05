@@ -7,6 +7,8 @@ public interface IApplicationDbContext
 {
     DbSet<Patient> Patients { get; }
     DbSet<TherapeuticGoal> TherapeuticGoals { get; }
+    DbSet<Session> Sessions { get; }
+    DbSet<SessionGoal> SessionGoals { get; }
     DbSet<User> Users { get; }
     DbSet<TherapistProfile> TherapistProfiles { get; }
 
