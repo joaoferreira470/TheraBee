@@ -61,9 +61,9 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Therapy Goals
 
-- [ ] Therapy goal domain exists.
-- [ ] Goals can be created for a patient or therapy plan.
-- [ ] Goals include area, priority, status, and review date.
+- [x] Therapy goal domain exists.
+- [x] Goals can be created for a patient.
+- [x] Goals include area, priority, status, and review date.
 - [ ] Goals can be associated with completed sessions.
 - [ ] Goal progress can be summarized over time.
 
@@ -138,9 +138,9 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Phase 4: Therapy Goals
 
-- [ ] Add therapeutic goal model.
-- [ ] Add goal create/list/update/status endpoints.
-- [ ] Link goals to patient and therapist ownership.
+- [x] Add therapeutic goal model.
+- [x] Add goal create/list/update/status endpoints.
+- [x] Link goals to patient and therapist ownership.
 - [ ] Prepare goals to be referenced by sessions and reports.
 
 ### Phase 5: Sessions And Checkpoints
@@ -201,8 +201,8 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Patient endpoints require authentication.
 - [x] Patients are associated with the authenticated therapist.
 - [x] Patient model supports the full MVP shape.
+- [x] Therapy goals are implemented.
 - [ ] Sessions are implemented.
-- [ ] Therapy goals are implemented.
 - [ ] Reports are implemented.
 - [ ] PDF export is implemented.
 
@@ -248,7 +248,7 @@ http://localhost:4200
 The next implementation step is now:
 
 ```text
-Phase 4: Therapy Goals -> Add therapeutic goal model
+Phase 5: Sessions And Checkpoints -> Add session model and structured checkpoint workflow
 ```
 
 After that, the roadmap should move toward:

@@ -29,6 +29,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 "Duplicate patient",
                 duplicatePatientException.Message,
                 Array.Empty<object>()),
+            TherapeuticGoalNotFoundException therapeuticGoalNotFoundException => (
+                StatusCodes.Status404NotFound,
+                "Not found",
+                therapeuticGoalNotFoundException.Message,
+                Array.Empty<object>()),
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
                 "Not found",
