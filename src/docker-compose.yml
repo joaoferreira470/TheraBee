@@ -7,7 +7,7 @@ services:
       dockerfile: Services/Patients/Patients.API/Dockerfile
 
   patientsdb:
-    image: postgres:latest
+    image: postgres:16-alpine
 
 volumes:
   postgres_therabee:

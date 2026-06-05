@@ -1,0 +1,220 @@
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">TB</div>
+    <div>
+      <strong>TheraBee</strong>
+      <span>Clinical workspace</span>
+    </div>
+  </div>
+
+  <nav class="nav" aria-label="Application navigation">
+    @for (view of views; track view.id) {
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeView() === view.id"
+        (click)="selectView(view.id)"
+      >
+        {{ view.label }}
+      </button>
+    }
+  </nav>
+</aside>
+
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">MVP Angular</p>
+      <h1>{{ activeTitle() }}</h1>
+    </div>
+
+    <div class="therapist-card">
+      <span class="avatar">JF</span>
+      <div>
+        <strong>Dr. Joao Ferreira</strong>
+        <span>Psychomotricist</span>
+      </div>
+    </div>
+  </header>
+
+  @if (activeView() === 'dashboard') {
+    <section class="view">
+      <div class="metrics">
+        <article>
+          <span>Active patients</span>
+          <strong>{{ patientCount() }}</strong>
+        </article>
+        <article>
+          <span>Upcoming sessions</span>
+          <strong>{{ sessionCount() }}</strong>
+        </article>
+        <article>
+          <span>Open notes</span>
+          <strong>{{ noteCount() }}</strong>
+        </article>
+      </div>
+
+      <div class="workspace-grid">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Today</h2>
+            <span>Next sessions</span>
+          </div>
+
+          <div class="stack">
+            @for (session of upcomingSessions(); track session.id) {
+              @let patient = patientById(session.patientId);
+              <article class="row">
+                <strong>{{ patient?.name }}</strong>
+                <span class="meta">{{ session.date }} · {{ session.type }}</span>
+                <span class="tag">{{ session.status }}</span>
+              </article>
+            }
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Patient Focus</h2>
+            <span>Current follow-up</span>
+          </div>
+
+          <dl class="detail-list">
+            <dt>Name</dt>
+            <dd>{{ selectedPatient().name }}</dd>
+            <dt>Age</dt>
+            <dd>{{ selectedPatient().age }}</dd>
+            <dt>Therapist</dt>
+            <dd>{{ selectedPatient().therapist }}</dd>
+            <dt>Diagnosis</dt>
+            <dd>{{ selectedPatient().diagnosis }}</dd>
+            <dt>Next session</dt>
+            <dd>{{ selectedPatient().nextSession }}</dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+  }
+
+  @if (activeView() === 'patients') {
+    <section class="view split">
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Patients</h2>
+          <span>Managed by current therapist</span>
+        </div>
+
+        <div class="patient-list">
+          @for (patient of patients(); track patient.id) {
+            <button
+              type="button"
+              class="patient-button"
+              [class.active]="selectedPatientId() === patient.id"
+              (click)="selectPatient(patient.id)"
+            >
+              <strong>{{ patient.name }}</strong>
+              <span class="meta">{{ patient.age }} years · {{ patient.diagnosis }}</span>
+              <span class="tag">{{ patient.status }}</span>
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="panel detail-panel">
+        <div class="panel-heading">
+          <h2>Patient Detail</h2>
+          <span>Clinical summary</span>
+        </div>
+
+        <dl class="detail-list">
+          <dt>Name</dt>
+          <dd>{{ selectedPatient().name }}</dd>
+          <dt>Age</dt>
+          <dd>{{ selectedPatient().age }}</dd>
+          <dt>Therapist</dt>
+          <dd>{{ selectedPatient().therapist }}</dd>
+          <dt>Diagnosis</dt>
+          <dd>{{ selectedPatient().diagnosis }}</dd>
+          <dt>Address</dt>
+          <dd>{{ selectedPatient().address }}</dd>
+          <dt>Next session</dt>
+          <dd>{{ selectedPatient().nextSession }}</dd>
+        </dl>
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'sessions') {
+    <section class="view">
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Sessions</h2>
+          <span>Prototype scheduling view</span>
+        </div>
+
+        <div class="session-list">
+          @for (session of sessions(); track session.id) {
+            @let patient = patientById(session.patientId);
+            <article class="row">
+              <strong>{{ patient?.name }}</strong>
+              <span class="meta">{{ session.date }} · {{ session.type }}</span>
+              <span class="tag">{{ session.status }}</span>
+            </article>
+          }
+        </div>
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'notes') {
+    <section class="view notes-layout">
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>New Note</h2>
+          <span>Draft only in this prototype</span>
+        </div>
+
+        <form class="note-form" (submit)="$event.preventDefault(); addNote()">
+          <label>
+            Patient
+            <select [value]="draftPatientId()" (change)="updateDraftPatient($any($event.target).value)">
+              @for (patient of patients(); track patient.id) {
+                <option [value]="patient.id">{{ patient.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Session note
+            <textarea
+              rows="8"
+              placeholder="Write a short clinical observation..."
+              [value]="draftNote()"
+              (input)="updateDraftNote($any($event.target).value)"
+            ></textarea>
+          </label>
+
+          <button type="submit">Add note</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Recent Notes</h2>
+          <span>In-memory prototype data</span>
+        </div>
+
+        <div class="stack">
+          @for (note of notes(); track note.createdAt + note.text) {
+            @let patient = patientById(note.patientId);
+            <article class="note-item">
+              <strong>{{ patient?.name }}</strong>
+              <p>{{ note.text }}</p>
+              <span class="meta">{{ note.createdAt }}</span>
+            </article>
+          }
+        </div>
+      </section>
+    </section>
+  }
+</main>

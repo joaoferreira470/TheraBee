@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TheraBee MVP Prototype</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TB</div>
+        <div>
+          <strong>TheraBee</strong>
+          <span>Clinical workspace</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Prototype navigation">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="patients">Patients</button>
+        <button class="nav-item" data-view="sessions">Sessions</button>
+        <button class="nav-item" data-view="notes">Clinical Notes</button>
+      </nav>
+    </aside>
+
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MVP prototype</p>
+          <h1 id="view-title">Dashboard</h1>
+        </div>
+        <div class="therapist-card">
+          <span class="avatar">JF</span>
+          <div>
+            <strong>Dr. Joao Ferreira</strong>
+            <span>Psychomotricist</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="dashboard" class="view active">
+        <div class="metrics">
+          <article>
+            <span>Active patients</span>
+            <strong id="metric-patients">0</strong>
+          </article>
+          <article>
+            <span>Upcoming sessions</span>
+            <strong id="metric-sessions">0</strong>
+          </article>
+          <article>
+            <span>Open notes</span>
+            <strong id="metric-notes">0</strong>
+          </article>
+        </div>
+
+        <div class="workspace-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Today</h2>
+              <span>Next sessions</span>
+            </div>
+            <div id="today-list" class="stack"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Patient Focus</h2>
+              <span>Current follow-up</span>
+            </div>
+            <div id="focus-patient" class="patient-focus"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="patients" class="view">
+        <div class="split">
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Patients</h2>
+              <span>Managed by current therapist</span>
+            </div>
+            <div id="patient-list" class="patient-list"></div>
+          </section>
+
+          <section class="panel detail-panel">
+            <div class="panel-heading">
+              <h2>Patient Detail</h2>
+              <span>Clinical summary</span>
+            </div>
+            <div id="patient-detail"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="sessions" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Sessions</h2>
+            <span>Prototype scheduling view</span>
+          </div>
+          <div id="session-list" class="session-list"></div>
+        </section>
+      </section>
+
+      <section id="notes" class="view">
+        <div class="notes-layout">
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>New Note</h2>
+              <span>Draft only in this prototype</span>
+            </div>
+            <form id="note-form" class="note-form">
+              <label>
+                Patient
+                <select id="note-patient"></select>
+              </label>
+              <label>
+                Session note
+                <textarea id="note-text" rows="8" placeholder="Write a short clinical observation..."></textarea>
+              </label>
+              <button type="submit">Add note</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Recent Notes</h2>
+              <span>In-memory prototype data</span>
+            </div>
+            <div id="notes-list" class="stack"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
