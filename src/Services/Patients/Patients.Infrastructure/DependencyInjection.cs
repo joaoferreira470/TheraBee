@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Patients.Application.Data;
+using Patients.Application.Services;
+using Patients.Infrastructure.Security;
 
 namespace Patients.Infrastructure;
 
@@ -18,6 +20,10 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+        services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddScoped<ITokenService, JwtTokenService>();
+
         return services;
     }
 }
+

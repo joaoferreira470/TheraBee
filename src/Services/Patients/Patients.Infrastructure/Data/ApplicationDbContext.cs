@@ -11,6 +11,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     }
 
     public DbSet<Patient> Patients => Set<Patient>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<TherapistProfile> TherapistProfiles => Set<TherapistProfile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

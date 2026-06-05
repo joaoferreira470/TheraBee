@@ -43,6 +43,8 @@ Before starting each branch:
 
 ## Phase 1: Auth And Therapist Profile
 
+Status: implemented in `feature/auth-therapist-profile` as an MVP backend slice.
+
 Goal:
 
 Allow a therapist to register, log in, and own their data.
@@ -71,13 +73,25 @@ PUT /therapists/me
 Implementation notes:
 
 - use hashed passwords;
-- return JWT or cookie-based authentication after deciding auth style;
+- return JWT authentication for the first MVP implementation;
 - add therapist ownership to future queries;
 - keep clinic/admin roles out of the first implementation.
 
-Key decision before coding:
+Implemented scope:
 
-- JWT tokens vs secure cookies.
+- `User` and `TherapistProfile` domain models;
+- PostgreSQL migrations for users and therapist profiles;
+- password hashing through PBKDF2;
+- JWT token generation and validation;
+- authenticated `GET /therapists/me` and `PUT /therapists/me`;
+- simple JWT logout endpoint where the client discards the token.
+
+Still to improve later:
+
+- friendly error responses for invalid login/register cases;
+- token refresh or secure-cookie strategy decision before production;
+- therapist ownership enforcement on Patients v2 queries and commands;
+- audit logging for clinically sensitive actions.
 
 ## Phase 2: Patients v2
 
@@ -320,4 +334,3 @@ Minimum test workflows:
 - Enforce therapist ownership in queries and commands.
 - Prefer archive/status changes over hard deletion for clinical records.
 - Log critical actions once audit support is added.
-

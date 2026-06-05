@@ -2,9 +2,9 @@
 
 ## Overview
 
-TheraBee is a .NET 8 backend project currently focused on patient management. The solution is organized with a layered architecture and exposes a Patients API backed by PostgreSQL.
+TheraBee is a .NET 8 backend project currently focused on therapist authentication, therapist profile management, and patient management. The solution is organized with a layered architecture and exposes a Patients API backed by PostgreSQL.
 
-The current service lets the application create, update, delete, list, and search patients. Each patient belongs to a therapist through `TherapistId` and stores basic clinical and address information.
+The current service lets therapists register, log in, manage their own professional profile, and create, update, delete, list, and search patients. Each patient belongs to a therapist through `TherapistId` and stores basic clinical and address information.
 
 ## Current Scope
 
@@ -202,6 +202,139 @@ http://localhost:6001
 ```
 
 PowerShell note: use `Invoke-RestMethod` or `curl.exe`. In Windows PowerShell, `curl` can resolve to `Invoke-WebRequest`, which handles headers differently from real curl.
+
+## Register Therapist
+
+```http
+POST /auth/register
+```
+
+Body:
+
+```json
+{
+  "name": "Maria Terapeuta",
+  "email": "maria.terapeuta@example.com",
+  "password": "Password123!",
+  "profession": "Psicomotricista"
+}
+```
+
+Example:
+
+```powershell
+$body = @{
+  name = "Maria Terapeuta"
+  email = "maria.terapeuta@example.com"
+  password = "Password123!"
+  profession = "Psicomotricista"
+} | ConvertTo-Json
+
+$auth = Invoke-RestMethod -Method POST -Uri "http://localhost:6001/auth/register" -ContentType "application/json; charset=utf-8" -Body $body
+$auth.auth.accessToken
+```
+
+Expected response shape:
+
+```json
+{
+  "auth": {
+    "accessToken": "jwt-token",
+    "user": {
+      "id": "generated-user-id",
+      "name": "Maria Terapeuta",
+      "email": "maria.terapeuta@example.com",
+      "role": "Therapist"
+    }
+  }
+}
+```
+
+## Login
+
+```http
+POST /auth/login
+```
+
+Example:
+
+```powershell
+$body = @{
+  email = "maria.terapeuta@example.com"
+  password = "Password123!"
+} | ConvertTo-Json
+
+$auth = Invoke-RestMethod -Method POST -Uri "http://localhost:6001/auth/login" -ContentType "application/json; charset=utf-8" -Body $body
+$token = $auth.auth.accessToken
+```
+
+## Logout
+
+```http
+POST /auth/logout
+```
+
+The API uses JWT authentication in this MVP. Logout returns `204 No Content`; the client should discard the token locally.
+
+Example:
+
+```powershell
+$headers = @{ Authorization = "Bearer $token" }
+Invoke-RestMethod -Method POST -Uri "http://localhost:6001/auth/logout" -Headers $headers
+```
+
+## Get Current Therapist Profile
+
+```http
+GET /therapists/me
+```
+
+Example:
+
+```powershell
+$headers = @{ Authorization = "Bearer $token" }
+Invoke-RestMethod -Method GET -Uri "http://localhost:6001/therapists/me" -Headers $headers
+```
+
+## Update Current Therapist Profile
+
+```http
+PUT /therapists/me
+```
+
+Body:
+
+```json
+{
+  "professionalName": "Maria Terapeuta",
+  "profession": "Psicomotricista",
+  "specialties": "Intervencao precoce, desenvolvimento infantil",
+  "professionalNumber": "LIC-001",
+  "phoneNumber": "+351900000000",
+  "workplace": "Clinica TheraBee",
+  "reportSignature": "Maria Terapeuta, Psicomotricista"
+}
+```
+
+Example:
+
+```powershell
+$headers = @{ Authorization = "Bearer $token" }
+
+$body = @{
+  professionalName = "Maria Terapeuta"
+  profession = "Psicomotricista"
+  specialties = "Intervencao precoce, desenvolvimento infantil"
+  professionalNumber = "LIC-001"
+  phoneNumber = "+351900000000"
+  workplace = "Clinica TheraBee"
+  reportSignature = "Maria Terapeuta, Psicomotricista"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method PUT -Uri "http://localhost:6001/therapists/me" -Headers $headers -ContentType "application/json; charset=utf-8" -Body $body
+```
+
+Important: in Windows PowerShell 5, accented characters can sometimes be sent with a non-UTF-8 encoding. If you see a JSON encoding error, either use ASCII text in manual tests or run the same command in PowerShell 7.
 
 ## List Patients
 

@@ -4,5 +4,6 @@ global using BuildingBlocks.CQRS;
 global using Patients.Application.Data;
 global using Patients.Application.Dtos;
 global using Patients.Application.Exceptions;
+global using Patients.Application.Services;
 global using Microsoft.EntityFrameworkCore;
 global using Patients.Application.Extensions;

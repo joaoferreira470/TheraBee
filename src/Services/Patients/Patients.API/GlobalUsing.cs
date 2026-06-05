@@ -2,3 +2,4 @@
 global using Mapster;
 global using MediatR;
 global using Patients.Application.Dtos;
+global using System.Security.Claims;
