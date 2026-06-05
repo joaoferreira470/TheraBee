@@ -15,7 +15,8 @@ public static class PatientExtensions
                                             patient.PatientAddress.ZipCode),
             Diagnosis: patient.Diagnosis,
             Info: patient.Info,
-            TherapistId: patient.TherapistId
+            TherapistId: patient.TherapistId,
+            Status: patient.Status
             ));
     }
 }

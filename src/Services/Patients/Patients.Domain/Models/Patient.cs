@@ -7,6 +7,7 @@ public class Patient : Aggregate<PatientId>
     public string Name { get; set; } = default!;
     public DateTime DateOfBirth { get; set; } = default!;
     public Address PatientAddress { get; set; } = default!;
+    public PatientStatus Status { get; set; } = PatientStatus.Active;
 
     public string Diagnosis {  get; set; } = default!;
     public string Info { get; set;} = default!;
@@ -20,6 +21,7 @@ public class Patient : Aggregate<PatientId>
             Name = name,
             DateOfBirth = dateOfBirth,
             PatientAddress = patientAddress,
+            Status = PatientStatus.Active,
             Diagnosis = diagnosis,
             Info = info,
             TherapistId = therapistId
@@ -39,6 +41,12 @@ public class Patient : Aggregate<PatientId>
         Info = info;
         TherapistId = therapistId;
 
+        AddDomainEvent(new PatientUpdatedEvent(this));
+    }
+
+    public void UpdateStatus(PatientStatus status)
+    {
+        Status = status;
         AddDomainEvent(new PatientUpdatedEvent(this));
     }
 }

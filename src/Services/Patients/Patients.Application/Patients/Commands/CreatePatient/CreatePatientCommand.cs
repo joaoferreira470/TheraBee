@@ -23,10 +23,7 @@ public class CreatePatientValidator : AbstractValidator<CreatePatientCommand>
 
 
         RuleFor(x => x.Patient.PatientAddress).NotEmpty().WithMessage("PatientAddress is required");
-
-        RuleFor(x => x.Patient.TherapistId)
-                    .NotEqual(Guid.Empty).WithMessage("TherapistId is required");
-
-        //verificar as validações da morada
+        RuleFor(x => x.Patient.Diagnosis).NotEmpty().WithMessage("Diagnosis is required");
+        RuleFor(x => x.Patient.Info).NotEmpty().WithMessage("Info is required");
     }
 }

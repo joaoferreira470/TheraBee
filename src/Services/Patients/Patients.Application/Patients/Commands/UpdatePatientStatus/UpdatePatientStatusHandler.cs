@@ -1,9 +1,9 @@
-﻿
-namespace Patients.Application.Patients.Commands.DeletePatient;
+namespace Patients.Application.Patients.Commands.UpdatePatientStatus;
 
-public class DeletePatientHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService) : ICommandHandler<DeletePatientCommand, DeletePatientResult>
+public class UpdatePatientStatusHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService)
+    : ICommandHandler<UpdatePatientStatusCommand, UpdatePatientStatusResult>
 {
-    public async Task<DeletePatientResult> Handle(DeletePatientCommand command, CancellationToken cancellationToken)
+    public async Task<UpdatePatientStatusResult> Handle(UpdatePatientStatusCommand command, CancellationToken cancellationToken)
     {
         var currentUserId = currentUserService.UserId
             ?? throw new UnauthorizedAccessException("User is not authenticated.");
@@ -18,10 +18,11 @@ public class DeletePatientHandler(IApplicationDbContext dbContext, ICurrentUserS
             throw new PatientNotFoundException(command.PatientId);
         }
 
-        patient.UpdateStatus(PatientStatus.Inactive);
+        patient.UpdateStatus(command.Status);
+
         dbContext.Patients.Update(patient);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new DeletePatientResult(true);
+        return new UpdatePatientStatusResult(true);
     }
 }

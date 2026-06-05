@@ -1,27 +1,27 @@
-﻿using Patients.Application.Patients.Commands.DeletePatient;
-using Patients.Application.Patients.Commands.UpdatePatient;
+using Patients.Application.Patients.Commands.DeletePatient;
 
 namespace Patients.API.Endpoints;
 
-public record DeletePatientRequest(Guid Id);
-
 public record DeletePatientResponse(bool IsSuccess);
+
 public class DeletePatient : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/patients/{id}", async (Guid Id, ISender sender) =>
+        app.MapDelete("/patients/{id}", async (Guid id, ISender sender) =>
         {
-            var result = await sender.Send(new DeletePatientCommand(Id));
-
+            var result = await sender.Send(new DeletePatientCommand(id));
             var response = result.Adapt<DeletePatientResponse>();
 
             return Results.Ok(response);
         })
+        .RequireAuthorization()
         .WithName("DeletePatient")
         .Produces<DeletePatientResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithSummary("Delete Patient")
-        .WithDescription("Delete Patient");
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .WithSummary("Archive Patient")
+        .WithDescription("Marks the patient as inactive instead of deleting it.");
     }
 }

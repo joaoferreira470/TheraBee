@@ -1,13 +1,9 @@
-﻿using Patients.Domain.ValueObjects;
-
 namespace Patients.Application.Dtos;
 
-public record PatientDto(
+public record UpdatePatientDto(
     Guid Id,
     string Name,
     DateTime DateOfBirth,
     AddressDto PatientAddress,
     string Diagnosis,
-    string Info,
-    Guid TherapistId,
-    PatientStatus Status);
+    string Info);

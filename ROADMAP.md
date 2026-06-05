@@ -23,14 +23,14 @@ Start with a modular backend and a simple frontend prototype. Keep the architect
 - [x] Current service exists.
 - [x] Basic patient CRUD exists.
 - [x] Address and diagnosis fields exist.
-- [ ] Therapist ownership is enforced through authenticated user.
+- [x] Therapist ownership is enforced through authenticated user.
 - [ ] Patients v2 richer model is implemented.
 
 ### Therapists
 
 - [x] Therapist profile domain now exists.
 - [x] Professional details and specialties can be stored.
-- [ ] Ownership of patients is enforced end-to-end.
+- [x] Ownership of patients is enforced end-to-end.
 - [ ] Ownership of sessions is enforced end-to-end.
 
 ### Sessions
@@ -69,23 +69,31 @@ Start with a modular backend and a simple frontend prototype. Keep the architect
 - [x] Add therapist registration and login.
 - [x] Add therapist profile read/update endpoints.
 - [x] Add password hashing and JWT authentication.
-- [ ] Link patients to authenticated therapist ownership.
+- [x] Link patients to authenticated therapist ownership.
 - [ ] Add therapist-oriented local seed data if still useful.
 
-### Phase 3: Sessions
+### Phase 3: Patients V2
+
+- [x] Enforce authenticated therapist ownership on patient operations.
+- [x] Add patient status and archive/inactivate flow.
+- [x] Add duplicate detection for patient creation.
+- [ ] Expand patient model to the full MVP shape.
+- [ ] Add richer filtering and ownership-aware search across all patient endpoints.
+
+### Phase 4: Sessions
 
 - [ ] Add session model.
 - [ ] Add scheduling/listing endpoints.
 - [ ] Add session notes.
 - [ ] Link sessions to patients and therapists.
 
-### Phase 4: Angular Frontend
+### Phase 5: Angular Frontend
 
 - [x] Angular client created under `src/Clients/therabee-web`.
 - [ ] Start with dashboard, patients, patient detail, sessions, and notes.
 - [ ] Use the backend API through typed client services.
 
-### Phase 5: Online Test Deployment
+### Phase 6: Online Test Deployment
 
 - [ ] Deploy only with fake data.
 - [ ] Use a free or low-cost static host for frontend.

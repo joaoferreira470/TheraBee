@@ -1,17 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Patients.Application.Patients.Commands.CreatePatient;
 
 namespace Patients.API.Endpoints;
 
-
-//-Accepts a Request object.
-//-Maps the request to a PatientCommand.
-//-Uses MediatR to send the command to the corresponding handler.
-//-Returns a reponse with the created Patient's ID.
-
 public record CreatePatientRequest(CreatePatientDto Patient);
 
 public record CreatePatientResponse(Guid Id);
+
 public class CreatePatient : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
@@ -19,16 +14,17 @@ public class CreatePatient : ICarterModule
         app.MapPost("/patients", async ([FromBody] CreatePatientRequest request, ISender sender) =>
         {
             var command = request.Adapt<CreatePatientCommand>();
-
             var result = await sender.Send(command);
-
             var response = result.Adapt<CreatePatientResponse>();
 
             return Results.Created($"/patients/{response.Id}", response);
         })
+        .RequireAuthorization()
         .WithName("CreatePatient")
         .Produces<CreatePatientResponse>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .WithSummary("Create Patient")
         .WithDescription("Create Patient");
     }

@@ -5,5 +5,4 @@ public record CreatePatientDto(
     DateTime DateOfBirth,
     AddressDto PatientAddress,
     string Diagnosis,
-    string Info,
-    Guid TherapistId);
+    string Info);

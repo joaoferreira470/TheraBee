@@ -48,6 +48,11 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .HasMaxLength(500)
             .IsRequired();
 
+        builder.Property(p => p.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired();
+
         builder.Property(p => p.TherapistId)
             .IsRequired();
     }

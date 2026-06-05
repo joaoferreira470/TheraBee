@@ -1,13 +1,17 @@
 ﻿namespace Patients.Application.Patients.Commands.UpdatePatient;
 
-public class UpdatePatientHandler(IApplicationDbContext dbContext)
+public class UpdatePatientHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService)
     : ICommandHandler<UpdatePatientCommand, UpdatePatientResult>
 {
     public async Task<UpdatePatientResult> Handle(UpdatePatientCommand command, CancellationToken cancellationToken)
     {
+        var currentUserId = currentUserService.UserId
+            ?? throw new UnauthorizedAccessException("User is not authenticated.");
+
         var patientId = PatientId.Of(command.Patient.Id);
 
-        var patient = await dbContext.Patients.FindAsync([patientId], cancellationToken);
+        var patient = await dbContext.Patients
+            .FirstOrDefaultAsync(p => p.Id == patientId && p.TherapistId == currentUserId, cancellationToken);
 
         if (patient == null) 
         {
@@ -23,7 +27,7 @@ public class UpdatePatientHandler(IApplicationDbContext dbContext)
         return new UpdatePatientResult(true);
     }
 
-    private void UpdatePatientWithNewValues(Patient patient, PatientDto patientDto)
+    private void UpdatePatientWithNewValues(Patient patient, UpdatePatientDto patientDto)
     {
         var updatedPatientAddress = Address.Of(
                                                 patientDto.PatientAddress.AddressLine,
@@ -31,12 +35,12 @@ public class UpdatePatientHandler(IApplicationDbContext dbContext)
                                                 patientDto.PatientAddress.Location,
                                                 patientDto.PatientAddress.ZipCode);
         patient.Update(
-                        patientDto.Name,
+                        patientDto.Name.Trim(),
                         patientDto.DateOfBirth,
                         updatedPatientAddress,
                         patientDto.Diagnosis,
                         patientDto.Info,
-                        patientDto.TherapistId
+                        patient.TherapistId
                         );
     }
 }

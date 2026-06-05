@@ -2,8 +2,14 @@ using Patients.API;
 using Patients.Application;
 using Patients.Infrastructure;
 using Patients.Infrastructure.Data.Extensions;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // Add Services to the container
 builder.Services
