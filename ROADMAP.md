@@ -6,6 +6,12 @@ Build a patient management application for therapists, psychomotricists, psychol
 
 The first milestone should prove the core clinical workflow before the system grows into a broader microservices architecture.
 
+## Planning Documents
+
+- `PRODUCT_REQUIREMENTS.md`: full product requirements and long-term vision.
+- `MVP_SCOPE.md`: reduced first-version scope to implement.
+- `BACKEND_IMPLEMENTATION_PLAN.md`: backend phases, modules, branches, and suggested endpoints.
+
 ## Recommended Strategy
 
 Start with a modular backend and a simple frontend prototype. Keep the architecture microservice-ready, but avoid splitting every concept into a distributed service too early.
