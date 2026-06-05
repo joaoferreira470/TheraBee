@@ -1,58 +1,114 @@
 # TheraBee MVP Roadmap
 
-## Goal
+## Product Thesis
 
-Build a patient management application for therapists, psychomotricists, psychologists, occupational therapists, and related professionals.
+TheraBee is a clinical workspace for therapists who need to turn session-by-session work into clear patient history, progress evidence, and therapeutic reports without spending hours rewriting scattered notes.
 
-The first milestone should prove the core clinical workflow before the system grows into a broader microservices architecture.
+The strongest MVP promise is:
+
+```text
+Session checkpoints -> measurable progress -> report draft -> PDF for families, caregivers, institutions, or clinical records
+```
+
+The application should still support patient management, scheduling, and therapist profiles, but the core differentiator is reducing report-writing time and making therapeutic progress easier to explain visually.
 
 ## Planning Documents
 
 - [x] `PRODUCT_REQUIREMENTS.md`: full product requirements and long-term vision.
 - [x] `MVP_SCOPE.md`: reduced first-version scope to implement.
 - [x] `BACKEND_IMPLEMENTATION_PLAN.md`: backend phases, modules, branches, and suggested endpoints.
+- [x] `Phase2.md`: patient ownership and relationship enforcement plan.
+- [ ] Add a dedicated report/checkpoint MVP plan document if the next backend phase needs a tighter brief.
 
 ## Recommended Strategy
 
-Start with a modular backend and a simple frontend prototype. Keep the architecture microservice-ready, but avoid splitting every concept into a distributed service too early.
+Start with a modular monolith backend that remains microservice-ready, but do not split Patients, Sessions, Goals, and Reports into separate deployable services yet.
+
+The first real product loop should be:
+
+```text
+Therapist -> Patient -> Goals -> Session Checkpoints -> Progress Dashboard -> Report Draft -> PDF
+```
+
+This keeps the architecture practical while focusing development on the painful workflow: clinical documentation and report generation.
 
 ## MVP Domains
 
+### Identity And Therapists
+
+- [x] Authentication foundation exists.
+- [x] Therapist registration/login/logout exists.
+- [x] JWT-based access control exists.
+- [x] Therapist profile domain exists.
+- [x] Professional details and specialties can be stored.
+- [x] Patient ownership is enforced through authenticated therapist.
+- [ ] Session ownership is enforced end-to-end.
+- [ ] Report ownership is enforced end-to-end.
+- [ ] Production-ready auth/privacy model exists.
+
 ### Patients
 
-- [x] Current service exists.
+- [x] Current Patients service exists.
 - [x] Basic patient CRUD exists.
 - [x] Address and diagnosis fields exist.
-- [x] Therapist ownership is enforced through authenticated user.
-- [ ] Patients v2 richer model is implemented.
+- [x] Patient status exists.
+- [x] Archive/inactivate flow exists.
+- [x] Duplicate detection exists for patient creation.
+- [x] Therapist ownership is enforced on patient operations.
+- [ ] Patient model supports the full MVP shape.
+- [ ] Patient detail endpoint exposes all data needed by the Angular patient profile.
+- [ ] Patient search/filtering supports name, status, diagnosis, age, and future-session gaps.
 
-### Therapists
+### Therapy Goals
 
-- [x] Therapist profile domain now exists.
-- [x] Professional details and specialties can be stored.
-- [x] Ownership of patients is enforced end-to-end.
-- [ ] Ownership of sessions is enforced end-to-end.
+- [ ] Therapy goal domain exists.
+- [ ] Goals can be created for a patient or therapy plan.
+- [ ] Goals include area, priority, status, and review date.
+- [ ] Goals can be associated with completed sessions.
+- [ ] Goal progress can be summarized over time.
 
-### Sessions
+### Sessions And Checkpoints
 
 - [ ] Session domain exists.
 - [ ] Scheduling endpoints exist.
 - [ ] Session status exists.
+- [ ] Session type exists.
 - [ ] Session notes exist.
-- [ ] Patient progress history exists.
+- [ ] Structured session checkpoints exist.
+- [ ] Checkpoints can record objectives worked, progress rating, activities, patient response, difficulties, recommendations, and next steps.
+- [ ] Session history can be listed by patient.
+- [ ] Sessions pending registration can be identified.
 
-### Clinical Notes
+### Progress Dashboards
 
-- [ ] Clinical notes started inside Sessions.
-- [ ] Split into dedicated module if complexity grows later.
+- [ ] Patient progress summary exists.
+- [ ] Attendance indicators exist.
+- [ ] Goal progress indicators exist.
+- [ ] Last and next session indicators exist.
+- [ ] Dashboard data can be consumed by Angular.
+- [ ] Dashboard data can be reused by reports.
 
-### Identity
+### Reports
 
-- [x] Authentication foundation exists.
-- [x] Therapist registration/login/logout exists.
-- [x] JWT-based access control exists for therapist profile endpoints.
-- [ ] Broader authorization rules exist across all clinical modules.
-- [ ] Production-ready auth/privacy model exists.
+- [ ] Report domain exists.
+- [ ] Report draft can be generated from patient, goals, sessions, and checkpoints.
+- [ ] Report draft can include dashboard-style progress summaries.
+- [ ] Report content can be edited before export.
+- [ ] Report can be exported to PDF.
+- [ ] Generated reports are stored in patient history.
+- [ ] Report generation is restricted to the owning therapist.
+
+### Angular Frontend
+
+- [x] Angular client exists under `src/Clients/therabee-web`.
+- [x] Angular client can run locally.
+- [ ] Angular API integration exists.
+- [ ] Login/register screens call the backend.
+- [ ] Patient list/detail screens call the backend.
+- [ ] Session checkpoint workflow exists.
+- [ ] Progress dashboard exists.
+- [ ] Report builder/export workflow exists.
+- [ ] UI is responsive for desktop, tablet, and mobile.
 
 ## Implementation Phases
 
@@ -80,25 +136,53 @@ Start with a modular backend and a simple frontend prototype. Keep the architect
 - [ ] Expand patient model to the full MVP shape.
 - [ ] Add richer filtering and ownership-aware search across all patient endpoints.
 
-### Phase 4: Sessions
+### Phase 4: Therapy Goals
+
+- [ ] Add therapeutic goal model.
+- [ ] Add goal create/list/update/status endpoints.
+- [ ] Link goals to patient and therapist ownership.
+- [ ] Prepare goals to be referenced by sessions and reports.
+
+### Phase 5: Sessions And Checkpoints
 
 - [ ] Add session model.
 - [ ] Add scheduling/listing endpoints.
-- [ ] Add session notes.
-- [ ] Link sessions to patients and therapists.
+- [ ] Add cancel/reschedule/complete session endpoints.
+- [ ] Add structured checkpoint fields for completed sessions.
+- [ ] Link sessions to patients, therapists, and goals.
+- [ ] Expose patient session history.
 
-### Phase 5: Angular Frontend
+### Phase 6: Progress Dashboard
 
-- [x] Angular client created under `src/Clients/therabee-web`.
-- [ ] Start with dashboard, patients, patient detail, sessions, and notes.
-- [ ] Use the backend API through typed client services.
+- [ ] Add patient progress summary query.
+- [ ] Add attendance metrics.
+- [ ] Add goal progress metrics.
+- [ ] Add sessions pending registration query.
+- [ ] Make dashboard data report-ready.
 
-### Phase 6: Online Test Deployment
+### Phase 7: Reports And PDF
+
+- [ ] Add report model.
+- [ ] Generate report draft from patient profile, goals, sessions, checkpoints, and progress summaries.
+- [ ] Allow report draft review/edit before export.
+- [ ] Export report to PDF.
+- [ ] Store generated report history.
+
+### Phase 8: Angular Frontend Integration
+
+- [ ] Connect Angular auth flow to backend JWT endpoints.
+- [ ] Connect patient list/detail/create/edit flows.
+- [ ] Build session checkpoint workflow.
+- [ ] Build progress dashboard views.
+- [ ] Build report generation and PDF export flow.
+
+### Phase 9: Online Test Deployment
 
 - [ ] Deploy only with fake data.
 - [ ] Use a free or low-cost static host for frontend.
 - [ ] Use a free or low-cost backend/database provider for temporary testing.
 - [x] Add authentication before handling anything sensitive.
+- [ ] Document deployment environment variables and seed strategy.
 
 ## Branching Rule
 
@@ -109,18 +193,28 @@ Before changing existing code, create or switch to a branch that matches the int
 - [ ] `fix/*` for bug fixes.
 - [ ] `chore/*` for tooling and setup.
 
+## Current Backend State
+
+- [x] Current branch is `feature/patients-v2`.
+- [x] `feature/patients-v2` includes the previous auth/therapist profile work.
+- [x] Patients API can build and run locally with Docker/PostgreSQL.
+- [x] Patient endpoints require authentication.
+- [x] Patients are associated with the authenticated therapist.
+- [ ] Sessions are implemented.
+- [ ] Therapy goals are implemented.
+- [ ] Reports are implemented.
+- [ ] PDF export is implemented.
+
 ## Current Prototype
 
-The current prototype is in:
+The dependency-free prototype is in:
 
 ```text
 prototype/therabee-mvp
 ```
 
-It is dependency-free and can be opened directly through `index.html`.
-
 - [x] Prototype folder exists.
-- [x] Prototype can be opened directly.
+- [x] Prototype can be opened directly through `index.html`.
 
 ## Current Angular Client
 
@@ -147,3 +241,19 @@ http://localhost:4200
 - [x] Angular client exists locally.
 - [x] Angular client can run locally.
 - [ ] Angular client is integrated with the backend API.
+
+## Next Logical Step
+
+The next implementation step is still:
+
+```text
+Phase 3: Patients V2 -> Expand patient model to the full MVP shape
+```
+
+After that, the roadmap should move toward:
+
+```text
+Therapy Goals -> Sessions And Checkpoints -> Progress Dashboard -> Reports And PDF
+```
+
+This sequence protects the key product idea: every session should produce structured data that later reduces report-writing effort and feeds visual progress explanations.
