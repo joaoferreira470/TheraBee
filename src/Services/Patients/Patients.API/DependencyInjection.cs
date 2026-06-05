@@ -10,11 +10,23 @@ namespace Patients.API;
 
 public static class DependencyInjection
 {
+    private const string LocalFrontendCorsPolicy = "LocalFrontend";
+
     public static IServiceCollection AddApiServices(this IServiceCollection services)
     {
         services.AddCarter();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddCors(options =>
+        {
+            options.AddPolicy(LocalFrontendCorsPolicy, policy =>
+            {
+                policy
+                    .WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
         services.AddAuthorization();
         services.AddProblemDetails();
         services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -49,6 +61,7 @@ public static class DependencyInjection
     public static WebApplication UseApiServices(this WebApplication app)
     {
         app.UseExceptionHandler();
+        app.UseCors(LocalFrontendCorsPolicy);
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapCarter();

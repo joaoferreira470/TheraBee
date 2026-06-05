@@ -1,220 +1,519 @@
-<aside class="sidebar">
-  <div class="brand">
-    <div class="brand-mark">TB</div>
-    <div>
-      <strong>TheraBee</strong>
-      <span>Clinical workspace</span>
-    </div>
-  </div>
-
-  <nav class="nav" aria-label="Application navigation">
-    @for (view of views; track view.id) {
-      <button
-        type="button"
-        class="nav-item"
-        [class.active]="activeView() === view.id"
-        (click)="selectView(view.id)"
-      >
-        {{ view.label }}
-      </button>
-    }
-  </nav>
-</aside>
-
-<main class="shell">
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">MVP Angular</p>
-      <h1>{{ activeTitle() }}</h1>
-    </div>
-
-    <div class="therapist-card">
-      <span class="avatar">JF</span>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="/assets/logo.png" alt="TheraBee logo" />
       <div>
-        <strong>Dr. Joao Ferreira</strong>
-        <span>Psychomotricist</span>
+        <strong>TheraBee</strong>
+        <span>Espaco clinico</span>
       </div>
     </div>
-  </header>
 
-  @if (activeView() === 'dashboard') {
-    <section class="view">
-      <div class="metrics">
-        <article>
-          <span>Active patients</span>
-          <strong>{{ patientCount() }}</strong>
-        </article>
-        <article>
-          <span>Upcoming sessions</span>
-          <strong>{{ sessionCount() }}</strong>
-        </article>
-        <article>
-          <span>Open notes</span>
-          <strong>{{ noteCount() }}</strong>
-        </article>
+    <nav class="nav" aria-label="Application navigation">
+      @for (view of views; track view.id) {
+        <button
+          type="button"
+          class="nav-item"
+          [class.active]="activeView() === view.id"
+          (click)="selectView(view.id)"
+        >
+          <strong>{{ view.label }}</strong>
+          <span>{{ view.hint }}</span>
+        </button>
+      }
+    </nav>
+
+    <div class="sidebar-note">
+      <span>Estado</span>
+      <strong>{{ canUseWorkspace() ? 'Sessao ativa' : 'Login pendente' }}</strong>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">TheraBee MVP</p>
+        <h1>Gestao terapeutica centrada no paciente</h1>
+        <p class="subtitle">Da sessao ao checkpoint, do checkpoint ao progresso, do progresso ao relatorio.</p>
       </div>
 
-      <div class="workspace-grid">
-        <section class="panel">
-          <div class="panel-heading">
-            <h2>Today</h2>
-            <span>Next sessions</span>
+      <div class="status-card">
+        @if (user(); as currentUser) {
+          <span class="avatar">{{ currentUser.name.slice(0, 2).toUpperCase() }}</span>
+          <div>
+            <strong>{{ currentUser.name }}</strong>
+            <span>{{ currentUser.email }}</span>
           </div>
-
-          <div class="stack">
-            @for (session of upcomingSessions(); track session.id) {
-              @let patient = patientById(session.patientId);
-              <article class="row">
-                <strong>{{ patient?.name }}</strong>
-                <span class="meta">{{ session.date }} · {{ session.type }}</span>
-                <span class="tag">{{ session.status }}</span>
-              </article>
-            }
+          <button type="button" class="ghost-button" (click)="logout()">Sair</button>
+        } @else {
+          <span class="avatar">?</span>
+          <div>
+            <strong>Sem sessao</strong>
+            <span>Entra para sincronizar com a API</span>
           </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-heading">
-            <h2>Patient Focus</h2>
-            <span>Current follow-up</span>
-          </div>
-
-          <dl class="detail-list">
-            <dt>Name</dt>
-            <dd>{{ selectedPatient().name }}</dd>
-            <dt>Age</dt>
-            <dd>{{ selectedPatient().age }}</dd>
-            <dt>Therapist</dt>
-            <dd>{{ selectedPatient().therapist }}</dd>
-            <dt>Diagnosis</dt>
-            <dd>{{ selectedPatient().diagnosis }}</dd>
-            <dt>Next session</dt>
-            <dd>{{ selectedPatient().nextSession }}</dd>
-          </dl>
-        </section>
+        }
       </div>
+    </header>
+
+    <section class="message-strip" [class.busy]="isBusy()">
+      <span>{{ isBusy() ? 'A trabalhar' : 'Estado' }}</span>
+      <strong>{{ apiMessage() }}</strong>
+      @if (canUseWorkspace()) {
+        <button type="button" (click)="loadWorkspace()">Atualizar</button>
+      }
     </section>
-  }
 
-  @if (activeView() === 'patients') {
-    <section class="view split">
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Patients</h2>
-          <span>Managed by current therapist</span>
-        </div>
+    @if (!canUseWorkspace()) {
+      <section class="auth-layout">
+        <article class="auth-copy">
+          <img class="auth-logo" src="/assets/logo.png" alt="TheraBee logo" />
+          <p class="eyebrow">Entrar</p>
+          <h2>Comeca por ligar a interface ao backend local.</h2>
+          <p>
+            Depois do login, a app carrega os pacientes associados ao terapeuta e permite trabalhar objetivos,
+            sessoes, checkpoints, dashboards e relatorios.
+          </p>
+        </article>
 
-        <div class="patient-list">
-          @for (patient of patients(); track patient.id) {
-            <button
-              type="button"
-              class="patient-button"
-              [class.active]="selectedPatientId() === patient.id"
-              (click)="selectPatient(patient.id)"
-            >
-              <strong>{{ patient.name }}</strong>
-              <span class="meta">{{ patient.age }} years · {{ patient.diagnosis }}</span>
-              <span class="tag">{{ patient.status }}</span>
-            </button>
+        <form class="panel auth-panel" (submit)="$event.preventDefault(); authenticate()">
+          <div class="segmented">
+            <button type="button" [class.active]="authMode() === 'login'" (click)="setAuthMode('login')">Login</button>
+            <button type="button" [class.active]="authMode() === 'register'" (click)="setAuthMode('register')">Registo</button>
+          </div>
+
+          @if (authMode() === 'register') {
+            <label>
+              Nome
+              <input [value]="authForm().name" (input)="updateAuth('name', $any($event.target).value)" />
+            </label>
+            <label>
+              Profissao
+              <input [value]="authForm().profession" (input)="updateAuth('profession', $any($event.target).value)" />
+            </label>
           }
-        </div>
-      </section>
-
-      <section class="panel detail-panel">
-        <div class="panel-heading">
-          <h2>Patient Detail</h2>
-          <span>Clinical summary</span>
-        </div>
-
-        <dl class="detail-list">
-          <dt>Name</dt>
-          <dd>{{ selectedPatient().name }}</dd>
-          <dt>Age</dt>
-          <dd>{{ selectedPatient().age }}</dd>
-          <dt>Therapist</dt>
-          <dd>{{ selectedPatient().therapist }}</dd>
-          <dt>Diagnosis</dt>
-          <dd>{{ selectedPatient().diagnosis }}</dd>
-          <dt>Address</dt>
-          <dd>{{ selectedPatient().address }}</dd>
-          <dt>Next session</dt>
-          <dd>{{ selectedPatient().nextSession }}</dd>
-        </dl>
-      </section>
-    </section>
-  }
-
-  @if (activeView() === 'sessions') {
-    <section class="view">
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Sessions</h2>
-          <span>Prototype scheduling view</span>
-        </div>
-
-        <div class="session-list">
-          @for (session of sessions(); track session.id) {
-            @let patient = patientById(session.patientId);
-            <article class="row">
-              <strong>{{ patient?.name }}</strong>
-              <span class="meta">{{ session.date }} · {{ session.type }}</span>
-              <span class="tag">{{ session.status }}</span>
-            </article>
-          }
-        </div>
-      </section>
-    </section>
-  }
-
-  @if (activeView() === 'notes') {
-    <section class="view notes-layout">
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>New Note</h2>
-          <span>Draft only in this prototype</span>
-        </div>
-
-        <form class="note-form" (submit)="$event.preventDefault(); addNote()">
-          <label>
-            Patient
-            <select [value]="draftPatientId()" (change)="updateDraftPatient($any($event.target).value)">
-              @for (patient of patients(); track patient.id) {
-                <option [value]="patient.id">{{ patient.name }}</option>
-              }
-            </select>
-          </label>
 
           <label>
-            Session note
-            <textarea
-              rows="8"
-              placeholder="Write a short clinical observation..."
-              [value]="draftNote()"
-              (input)="updateDraftNote($any($event.target).value)"
-            ></textarea>
+            Email
+            <input type="email" [value]="authForm().email" (input)="updateAuth('email', $any($event.target).value)" />
           </label>
-
-          <button type="submit">Add note</button>
+          <label>
+            Password
+            <input type="password" [value]="authForm().password" (input)="updateAuth('password', $any($event.target).value)" />
+          </label>
+          <button type="submit" class="primary-button">{{ authMode() === 'login' ? 'Entrar' : 'Criar conta' }}</button>
         </form>
       </section>
-
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Recent Notes</h2>
-          <span>In-memory prototype data</span>
-        </div>
-
-        <div class="stack">
-          @for (note of notes(); track note.createdAt + note.text) {
-            @let patient = patientById(note.patientId);
-            <article class="note-item">
-              <strong>{{ patient?.name }}</strong>
-              <p>{{ note.text }}</p>
-              <span class="meta">{{ note.createdAt }}</span>
-            </article>
-          }
+    } @else {
+      <section class="patient-rail">
+        <div class="rail-heading">
+          <div>
+            <span>Paciente ativo</span>
+            <strong>{{ selectedPatient()?.name || 'Seleciona um paciente' }}</strong>
+          </div>
+          <select [value]="selectedPatientId()" (change)="selectPatient($any($event.target).value)">
+            @for (patient of patients(); track patient.id) {
+              <option [value]="patient.id">{{ patient.name }}</option>
+            }
+          </select>
         </div>
       </section>
-    </section>
-  }
-</main>
+
+      @if (activeView() === 'overview') {
+        <section class="view">
+          <div class="metrics-grid">
+            <article class="metric-card">
+              <span>Pacientes ativos</span>
+              <strong>{{ activePatientCount() }}</strong>
+            </article>
+            <article class="metric-card">
+              <span>Sessoes pendentes</span>
+              <strong>{{ pendingSessionCount() }}</strong>
+            </article>
+            <article class="metric-card">
+              <span>Sessoes concluidas</span>
+              <strong>{{ completedSessionCount() }}</strong>
+            </article>
+            <article class="metric-card">
+              <span>Relatorios</span>
+              <strong>{{ reports().length }}</strong>
+            </article>
+          </div>
+
+          @if (dashboard(); as progress) {
+            <section class="content-grid">
+              <article class="panel">
+                <div class="panel-heading">
+                  <h2>Progresso do paciente</h2>
+                  <span>{{ progress.patient.name }}</span>
+                </div>
+                <div class="progress-bars">
+                  <div>
+                    <div class="bar-label">
+                      <span>Presenca</span>
+                      <strong>{{ progress.attendance.attendanceRate }}%</strong>
+                    </div>
+                    <div class="bar"><span [style.width.%]="progress.attendance.attendanceRate"></span></div>
+                  </div>
+                  <div>
+                    <div class="bar-label">
+                      <span>Objetivos alcancados</span>
+                      <strong>{{ progress.goals.completionRate }}%</strong>
+                    </div>
+                    <div class="bar rose"><span [style.width.%]="progress.goals.completionRate"></span></div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-heading">
+                  <h2>Agenda clinica</h2>
+                  <span>Ultima e proxima sessao</span>
+                </div>
+                <dl class="detail-list">
+                  <dt>Ultima sessao</dt>
+                  <dd>{{ formatDateTime(progress.lastSession?.startDateTime) }}</dd>
+                  <dt>Proxima sessao</dt>
+                  <dd>{{ formatDateTime(progress.nextSession?.startDateTime) }}</dd>
+                  <dt>Pendentes de registo</dt>
+                  <dd>{{ progress.attendance.pendingRegistrationSessions }}</dd>
+                </dl>
+              </article>
+            </section>
+          }
+        </section>
+      }
+
+      @if (activeView() === 'patients') {
+        <section class="view patient-page">
+          <aside class="panel patient-list-panel">
+            <div class="panel-heading">
+              <h2>Pacientes</h2>
+              <span>{{ patients().length }} registados</span>
+            </div>
+            <div class="stack">
+              @for (patient of patients(); track patient.id) {
+                <button type="button" class="list-row" [class.active]="selectedPatientId() === patient.id" (click)="selectPatient(patient.id)">
+                  <strong>{{ patient.name }}</strong>
+                  <span>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</span>
+                  <small>{{ patient.status }}</small>
+                </button>
+              }
+            </div>
+          </aside>
+
+          @if (selectedPatient(); as patient) {
+            <section class="patient-main">
+              <article class="patient-hero">
+                <div>
+                  <p class="eyebrow">Ficha do paciente</p>
+                  <h2>{{ patient.name }}</h2>
+                  <p>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</p>
+                </div>
+                <div class="hero-actions">
+                  <button type="button" class="primary-button" (click)="startSchedulingForSelectedPatient()">Agendar sessao</button>
+                  <button type="button" class="ghost-button" (click)="createReportDraft()">Gerar relatorio</button>
+                </div>
+              </article>
+
+              <div class="metrics-grid patient-metrics">
+                <article class="metric-card">
+                  <span>Objetivos abertos</span>
+                  <strong>{{ openGoalCount() }}</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Objetivos alcancados</span>
+                  <strong>{{ achievedGoalCount() }}</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Sessoes do paciente</span>
+                  <strong>{{ selectedPatientSessions().length }}</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Relatorios</span>
+                  <strong>{{ selectedPatientReports().length }}</strong>
+                </article>
+              </div>
+
+              <section class="content-grid">
+                <article class="panel">
+                  <div class="panel-heading">
+                    <h2>Dados clinicos</h2>
+                    <span>{{ patient.status }}</span>
+                  </div>
+                  <dl class="detail-list">
+                    <dt>Genero</dt>
+                    <dd>{{ patient.gender || 'Nao especificado' }}</dd>
+                    <dt>Telefone</dt>
+                    <dd>{{ patient.phoneNumber || 'Nao especificado' }}</dd>
+                    <dt>Email</dt>
+                    <dd>{{ patient.email || 'Nao especificado' }}</dd>
+                    <dt>Cuidador</dt>
+                    <dd>{{ patient.caregiverName || 'Nao registado' }}</dd>
+                    <dt>Motivo</dt>
+                    <dd>{{ patient.referralReason || 'Nao especificado' }}</dd>
+                    <dt>Morada</dt>
+                    <dd>{{ patientAddress(patient) || 'Nao especificada' }}</dd>
+                  </dl>
+                </article>
+
+                <article class="panel">
+                  <div class="panel-heading">
+                    <h2>Novo paciente</h2>
+                    <span>Registo rapido</span>
+                  </div>
+                  <form class="form-grid compact" (submit)="$event.preventDefault(); createPatient()">
+                    <label>
+                      Nome
+                      <input [value]="patientForm().name" (input)="updatePatient('name', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Data nascimento
+                      <input type="date" [value]="patientForm().dateOfBirth" (input)="updatePatient('dateOfBirth', $any($event.target).value)" />
+                    </label>
+                    <label class="wide">
+                      Diagnostico principal
+                      <input [value]="patientForm().mainDiagnosis" (input)="updatePatient('mainDiagnosis', $any($event.target).value)" />
+                    </label>
+                    <label class="wide">
+                      Morada
+                      <input [value]="patientForm().addressLine" (input)="updatePatient('addressLine', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Distrito
+                      <input [value]="patientForm().district" (input)="updatePatient('district', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Localidade
+                      <input [value]="patientForm().location" (input)="updatePatient('location', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Codigo postal
+                      <input [value]="patientForm().zipCode" (input)="updatePatient('zipCode', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Telefone
+                      <input [value]="patientForm().phoneNumber" (input)="updatePatient('phoneNumber', $any($event.target).value)" />
+                    </label>
+                    <button type="submit" class="primary-button">Criar paciente</button>
+                  </form>
+                </article>
+              </section>
+
+              <section class="content-grid">
+                <article class="panel">
+                  <div class="panel-heading">
+                    <h2>Objetivos terapeuticos</h2>
+                    <span>Propostos e alcancados</span>
+                  </div>
+                  <form class="form-grid compact" (submit)="$event.preventDefault(); createGoal()">
+                    <label class="wide">
+                      Descricao
+                      <input [value]="goalForm().description" (input)="updateGoal('description', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Area
+                      <input [value]="goalForm().area" (input)="updateGoal('area', $any($event.target).value)" />
+                    </label>
+                    <label>
+                      Prioridade
+                      <select [value]="goalForm().priority" (change)="updateGoal('priority', $any($event.target).value)">
+                        <option value="Low">Baixa</option>
+                        <option value="Medium">Media</option>
+                        <option value="High">Alta</option>
+                      </select>
+                    </label>
+                    <label>
+                      Revisao
+                      <input type="date" [value]="goalForm().reviewDate" (input)="updateGoal('reviewDate', $any($event.target).value)" />
+                    </label>
+                    <button type="submit" class="primary-button">Criar objetivo</button>
+                  </form>
+
+                  <div class="stack separated">
+                    @for (goal of selectedPatientGoals(); track goal.id) {
+                      <article class="list-card">
+                        <strong>{{ goal.description }}</strong>
+                        <span>{{ goal.area }} - {{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
+                        <small>Revisao: {{ formatDate(goal.reviewDate) }}</small>
+                        <div class="inline-actions">
+                          <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>
+                          <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcancado</button>
+                          <button type="button" (click)="updateGoalStatus(goal.id, 'Suspended')">Suspender</button>
+                        </div>
+                      </article>
+                    }
+                  </div>
+                </article>
+
+                <article class="panel">
+                  <div class="panel-heading">
+                    <h2>Proximas sessoes</h2>
+                    <span>Plano do paciente</span>
+                  </div>
+                  <div class="stack">
+                    @for (session of selectedPatientSessions(); track session.id) {
+                      <article class="list-card">
+                        <strong>{{ formatDateTime(session.startDateTime) }}</strong>
+                        <span>{{ sessionTypeLabel(session.type) }} - {{ session.location }}</span>
+                        <small>{{ sessionStatusLabel(session.status) }}</small>
+                      </article>
+                    }
+                  </div>
+                </article>
+              </section>
+            </section>
+          } @else {
+            <article class="empty-state">
+              <strong>Ainda nao ha paciente selecionado.</strong>
+              <span>Cria ou seleciona um paciente para abrir a ficha.</span>
+            </article>
+          }
+        </section>
+      }
+
+      @if (activeView() === 'sessions') {
+        <section class="view content-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Agendar sessao</h2>
+              <span>{{ selectedPatient()?.name || 'Paciente' }}</span>
+            </div>
+            <form class="form-grid compact" (submit)="$event.preventDefault(); createSession()">
+              <label>
+                Inicio
+                <input type="datetime-local" [value]="sessionForm().startDateTime" (input)="updateSession('startDateTime', $any($event.target).value)" />
+              </label>
+              <label>
+                Fim
+                <input type="datetime-local" [value]="sessionForm().endDateTime" (input)="updateSession('endDateTime', $any($event.target).value)" />
+              </label>
+              <label>
+                Tipo
+                <select [value]="sessionForm().type" (change)="updateSession('type', $any($event.target).value)">
+                  <option value="Assessment">Avaliacao</option>
+                  <option value="Intervention">Intervencao</option>
+                  <option value="FollowUp">Seguimento</option>
+                </select>
+              </label>
+              <label>
+                Local
+                <input [value]="sessionForm().location" (input)="updateSession('location', $any($event.target).value)" />
+              </label>
+              <button type="submit" class="primary-button">Agendar sessao</button>
+            </form>
+
+            <div class="stack separated">
+              @for (session of selectedPatientSessions(); track session.id) {
+                <button type="button" class="list-row" [class.active]="selectedSession()?.id === session.id" (click)="selectSession(session.id)">
+                  <strong>{{ formatDateTime(session.startDateTime) }}</strong>
+                  <span>{{ sessionTypeLabel(session.type) }} - {{ session.location }}</span>
+                  <small>{{ sessionStatusLabel(session.status) }}</small>
+                </button>
+              }
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Checkpoint da sessao</h2>
+              <span>Transforma a sessao em dados para relatorio</span>
+            </div>
+            @if (selectedSession(); as session) {
+              <form class="checkpoint-form" (submit)="$event.preventDefault(); completeSession(session.id)">
+                <label>
+                  Sumario clinico
+                  <textarea rows="3" [value]="checkpointForm().clinicalSummary" (input)="updateCheckpoint('clinicalSummary', $any($event.target).value)"></textarea>
+                </label>
+                <label>
+                  Objetivos trabalhados
+                  <textarea rows="3" [value]="checkpointForm().objectivesWorked" (input)="updateCheckpoint('objectivesWorked', $any($event.target).value)"></textarea>
+                </label>
+                <label>
+                  Rating de progresso
+                  <input [value]="checkpointForm().progressRating" (input)="updateCheckpoint('progressRating', $any($event.target).value)" />
+                </label>
+                <label>
+                  Atividades
+                  <textarea rows="3" [value]="checkpointForm().activities" (input)="updateCheckpoint('activities', $any($event.target).value)"></textarea>
+                </label>
+                <label>
+                  Resposta do paciente
+                  <textarea rows="3" [value]="checkpointForm().patientResponse" (input)="updateCheckpoint('patientResponse', $any($event.target).value)"></textarea>
+                </label>
+                <label>
+                  Dificuldades
+                  <textarea rows="3" [value]="checkpointForm().difficulties" (input)="updateCheckpoint('difficulties', $any($event.target).value)"></textarea>
+                </label>
+                <label>
+                  Recomendacoes
+                  <textarea rows="3" [value]="checkpointForm().recommendations" (input)="updateCheckpoint('recommendations', $any($event.target).value)"></textarea>
+                </label>
+                <label>
+                  Proximos passos
+                  <textarea rows="3" [value]="checkpointForm().nextSteps" (input)="updateCheckpoint('nextSteps', $any($event.target).value)"></textarea>
+                </label>
+                <button type="submit" class="primary-button">Concluir sessao</button>
+              </form>
+            } @else {
+              <article class="empty-state">
+                <strong>Sem sessao selecionada.</strong>
+                <span>Agenda ou seleciona uma sessao para registar o checkpoint.</span>
+              </article>
+            }
+          </article>
+        </section>
+      }
+
+      @if (activeView() === 'reports') {
+        <section class="view content-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Relatorio do paciente</h2>
+              <span>{{ selectedPatient()?.name || 'Paciente' }}</span>
+            </div>
+            <p class="panel-copy">
+              Gera um rascunho em Portugues de Portugal a partir da ficha do paciente, objetivos, sessoes,
+              checkpoints e dashboard de progresso.
+            </p>
+            <button type="button" class="primary-button" (click)="createReportDraft()">Gerar rascunho</button>
+
+            @if (latestReport(); as report) {
+              <div class="report-preview">
+                <h3>{{ report.title }}</h3>
+                <p>{{ report.executiveSummary }}</p>
+                <dl class="detail-list">
+                  <dt>Periodo</dt>
+                  <dd>{{ formatDate(report.periodStart) }} a {{ formatDate(report.periodEnd) }}</dd>
+                  <dt>PDF</dt>
+                  <dd>{{ report.hasPdfExport ? 'Exportado' : 'Ainda nao exportado' }}</dd>
+                  <dt>Word</dt>
+                  <dd>{{ report.hasWordExport ? 'Exportado' : 'Ainda nao exportado' }}</dd>
+                </dl>
+              </div>
+            }
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Historico de rascunhos</h2>
+              <span>{{ selectedPatientReports().length }} relatorios</span>
+            </div>
+            <div class="stack">
+              @for (report of selectedPatientReports(); track report.id) {
+                <article class="report-card">
+                  <strong>{{ report.title }}</strong>
+                  <p>{{ report.executiveSummary }}</p>
+                  <small>{{ formatDate(report.createdAt) }}</small>
+                  <div class="report-actions">
+                    <button type="button" (click)="exportReport(report.id, 'pdf')">PDF</button>
+                    <button type="button" (click)="exportReport(report.id, 'word')">Word</button>
+                    <button type="button" class="danger-button" (click)="discardReport(report.id)">Descartar</button>
+                  </div>
+                </article>
+              }
+            </div>
+          </article>
+        </section>
+      }
+    }
+  </main>
+</div>

@@ -10,6 +10,7 @@ public static class ReportDocumentExporter
 {
     private const string PdfContentType = "application/pdf";
     private const string WordContentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    private static readonly CultureInfo PtPt = CultureInfo.GetCultureInfo("pt-PT");
 
     public static ReportExportResult ExportPdf(Report report)
     {
@@ -31,33 +32,23 @@ public static class ReportDocumentExporter
 
     private static IReadOnlyList<string> BuildReportLines(Report report)
     {
-        return new List<string>
+        var lines = new List<string>
         {
             report.Title,
             string.Empty,
-            $"Period: {report.PeriodStart:dd MMM yyyy} to {report.PeriodEnd:dd MMM yyyy}",
-            string.Empty,
-            "Patient Snapshot",
-            report.PatientSnapshot,
-            string.Empty,
-            "Executive Summary",
-            report.ExecutiveSummary,
-            string.Empty,
-            "Attendance Summary",
-            report.AttendanceSummary,
-            string.Empty,
-            "Goal Progress Summary",
-            report.GoalProgressSummary,
-            string.Empty,
-            "Session Summary",
-            report.SessionSummary,
-            string.Empty,
-            "Recommendations",
-            report.Recommendations,
-            string.Empty,
-            "Additional Notes",
-            report.AdditionalNotes ?? "No additional notes provided."
+            $"Período: {report.PeriodStart.ToString("dd MMM yyyy", PtPt)} a {report.PeriodEnd.ToString("dd MMM yyyy", PtPt)}",
+            string.Empty
         };
+
+        AddSection(lines, "Dados do paciente", report.PatientSnapshot);
+        AddSection(lines, "Sumário executivo", report.ExecutiveSummary);
+        AddSection(lines, "Resumo de assiduidade", report.AttendanceSummary);
+        AddSection(lines, "Progresso dos objetivos", report.GoalProgressSummary);
+        AddSection(lines, "Resumo das sessões", report.SessionSummary);
+        AddSection(lines, "Recomendações", report.Recommendations);
+        AddSection(lines, "Notas adicionais", report.AdditionalNotes ?? "Sem notas adicionais.");
+
+        return lines;
     }
 
     private static byte[] BuildPdf(IReadOnlyList<string> lines)
@@ -78,13 +69,13 @@ public static class ReportDocumentExporter
         }
 
         objects.Add($"<< /Type /Pages /Kids [{kids}] /Count {pageCount} >>");
-        objects.Add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+        objects.Add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
 
         foreach (var page in pages)
         {
             var content = BuildPdfPageContent(page);
             objects.Add($"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents {objects.Count + 2} 0 R >>");
-            objects.Add($"<< /Length {Encoding.ASCII.GetByteCount(content)} >>\nstream\n{content}\nendstream");
+            objects.Add($"<< /Length {Encoding.Latin1.GetByteCount(content)} >>\nstream\n{content}\nendstream");
         }
 
         return BuildPdfFile(objects);
@@ -118,18 +109,19 @@ public static class ReportDocumentExporter
     {
         var builder = new StringBuilder();
         builder.AppendLine("%PDF-1.4");
+        builder.AppendLine("%\u00e2\u00e3\u00cf\u00d3");
 
         var offsets = new List<int> { 0 };
 
         for (var i = 0; i < objects.Count; i++)
         {
-            offsets.Add(Encoding.ASCII.GetByteCount(builder.ToString()));
+            offsets.Add(Encoding.Latin1.GetByteCount(builder.ToString()));
             builder.AppendLine($"{i + 1} 0 obj");
             builder.AppendLine(objects[i]);
             builder.AppendLine("endobj");
         }
 
-        var xrefPosition = Encoding.ASCII.GetByteCount(builder.ToString());
+        var xrefPosition = Encoding.Latin1.GetByteCount(builder.ToString());
         builder.AppendLine("xref");
         builder.AppendLine($"0 {objects.Count + 1}");
         builder.AppendLine("0000000000 65535 f ");
@@ -144,7 +136,7 @@ public static class ReportDocumentExporter
         builder.AppendLine(xrefPosition.ToString(CultureInfo.InvariantCulture));
         builder.AppendLine("%%EOF");
 
-        return Encoding.ASCII.GetBytes(builder.ToString());
+        return Encoding.Latin1.GetBytes(builder.ToString());
     }
 
     private static byte[] BuildWord(IReadOnlyList<string> lines, string title)
@@ -288,6 +280,26 @@ public static class ReportDocumentExporter
         }
     }
 
+    private static void AddSection(ICollection<string> lines, string title, string content)
+    {
+        lines.Add(title);
+
+        foreach (var line in SplitContentLines(content))
+        {
+            lines.Add(line);
+        }
+
+        lines.Add(string.Empty);
+    }
+
+    private static IEnumerable<string> SplitContentLines(string content)
+    {
+        return content
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n');
+    }
+
     private static string BuildFileName(string title, string extension)
     {
         var normalized = Regex.Replace(title.ToLowerInvariant(), @"[^a-z0-9]+", "_")
@@ -303,9 +315,7 @@ public static class ReportDocumentExporter
 
     private static string EscapePdf(string value)
     {
-        var ascii = new string(value.Select(character => character <= 0x7F ? character : '?').ToArray());
-
-        return ascii
+        return value
             .Replace(@"\", @"\\")
             .Replace("(", @"\(")
             .Replace(")", @"\)");

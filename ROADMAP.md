@@ -18,6 +18,7 @@ The application should still support patient management, scheduling, and therapi
 - [x] `MVP_SCOPE.md`: reduced first-version scope to implement.
 - [x] `BACKEND_IMPLEMENTATION_PLAN.md`: backend phases, modules, branches, and suggested endpoints.
 - [x] `Phase2.md`: patient ownership and relationship enforcement plan.
+- [x] `Phase8.md`: Angular frontend integration plan and validation checklist.
 - [ ] Add a dedicated report/checkpoint MVP plan document if the next backend phase needs a tighter brief.
 
 ## Recommended Strategy
@@ -27,7 +28,7 @@ Start with a modular monolith backend that remains microservice-ready, but do no
 The first real product loop should be:
 
 ```text
-Therapist -> Patient -> Goals -> Session Checkpoints -> Progress Dashboard -> Report Draft -> PDF
+Therapist -> Patient -> Goals -> Session Checkpoints -> Progress Dashboard -> Report Draft -> PDF or Word
 ```
 
 This keeps the architecture practical while focusing development on the painful workflow: clinical documentation and report generation.
@@ -96,20 +97,23 @@ This keeps the architecture practical while focusing development on the painful 
 - [x] Report content can be edited before export.
 - [x] Report can be exported to PDF.
 - [x] Report can be exported to Word.
+- [x] Report drafts can be discarded.
 - [x] Generated reports are stored in patient history.
 - [x] Report generation is restricted to the owning therapist.
+- [x] Report draft content is generated in Portuguese from Portugal.
 
 ### Angular Frontend
 
 - [x] Angular client exists under `src/Clients/therabee-web`.
 - [x] Angular client can run locally.
-- [ ] Angular API integration exists.
-- [ ] Login/register screens call the backend.
-- [ ] Patient list/detail screens call the backend.
-- [ ] Session checkpoint workflow exists.
-- [ ] Progress dashboard exists.
-- [ ] Report builder/export workflow exists.
-- [ ] UI is responsive for desktop, tablet, and mobile.
+- [x] Angular API integration exists.
+- [x] Login/register screens call the backend.
+- [x] Patient list/detail/create screens call the backend.
+- [ ] Patient edit screen calls the backend.
+- [x] Session checkpoint workflow exists.
+- [x] Progress dashboard exists.
+- [x] Report builder/export workflow exists.
+- [x] UI is responsive for desktop, tablet, and mobile.
 
 ## Implementation Phases
 
@@ -172,11 +176,16 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Phase 8: Angular Frontend Integration
 
-- [ ] Connect Angular auth flow to backend JWT endpoints.
-- [ ] Connect patient list/detail/create/edit flows.
-- [ ] Build session checkpoint workflow.
-- [ ] Build progress dashboard views.
-- [ ] Build report generation and PDF/Word export flow.
+- [x] Connect Angular auth flow to backend JWT endpoints.
+- [x] Connect patient list/detail/create flows.
+- [ ] Connect patient edit flow.
+- [x] Build patient-centered detail page with goals, sessions, and report shortcuts.
+- [x] Connect goal status update actions.
+- [x] Build session checkpoint workflow.
+- [x] Build progress dashboard views.
+- [x] Build report generation and PDF/Word export flow.
+- [x] Build report draft discard flow.
+- [ ] Add environment-based API URL configuration.
 
 ### Phase 9: Online Test Deployment
 
@@ -245,14 +254,14 @@ http://localhost:4200
 
 - [x] Angular client exists locally.
 - [x] Angular client can run locally.
-- [ ] Angular client is integrated with the backend API.
+- [x] Angular client is integrated with the backend API.
 
 ## Next Logical Step
 
 The next implementation step is now:
 
 ```text
-Phase 8: Angular Frontend Integration -> Connect Angular auth flow to backend JWT endpoints
+Phase 8 follow-up -> Add environment-based API URL and patient edit UI
 ```
 
 After that, the roadmap should move toward:

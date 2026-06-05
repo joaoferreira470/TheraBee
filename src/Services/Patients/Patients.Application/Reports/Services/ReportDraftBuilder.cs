@@ -4,6 +4,8 @@ namespace Patients.Application.Reports.Services;
 
 public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgressDashboardBuilder dashboardBuilder) : IReportDraftBuilder
 {
+    private static readonly CultureInfo PtPt = CultureInfo.GetCultureInfo("pt-PT");
+
     public async Task<Report> BuildAsync(Guid patientId, Guid therapistId, CancellationToken cancellationToken)
     {
         var patient = await dbContext.Patients
@@ -34,7 +36,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
         var dashboard = await dashboardBuilder.BuildAsync(patientId, therapistId, cancellationToken);
         var periodStart = sessions.Any() ? sessions.Min(session => session.StartDateTime) : DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
         var periodEnd = sessions.Any() ? sessions.Max(session => session.EndDateTime) : DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
-        var title = $"Therapy Progress Report - {patient.Name}";
+        var title = $"Relatório de Progresso Terapêutico - {patient.Name}";
 
         var patientSnapshot = BuildPatientSnapshot(patientDto);
         var executiveSummary = BuildExecutiveSummary(patientDto, dashboard, periodStart, periodEnd);
@@ -61,22 +63,22 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
 
     private static string BuildPatientSnapshot(PatientDto patient)
     {
-        var ageText = patient.CalculatedAge > 0 ? $"{patient.CalculatedAge} years old" : "age unavailable";
+        var ageText = patient.CalculatedAge > 0 ? $"{patient.CalculatedAge} anos" : "idade indisponível";
         var caregiverText = string.IsNullOrWhiteSpace(patient.CaregiverName)
-            ? "No caregiver registered"
-            : $"Caregiver: {patient.CaregiverName}";
+            ? "Cuidador: não registado"
+            : $"Cuidador: {patient.CaregiverName}";
 
         return string.Join(Environment.NewLine, new[]
         {
-            $"Patient: {patient.Name}",
-            $"Age: {ageText}",
-            $"Main diagnosis: {patient.MainDiagnosis}",
-            $"Gender: {patient.Gender ?? "Not specified"}",
-            $"Phone: {patient.PhoneNumber ?? "Not specified"}",
-            $"Email: {patient.Email ?? "Not specified"}",
+            $"Paciente: {patient.Name}",
+            $"Idade: {ageText}",
+            $"Diagnóstico principal: {patient.MainDiagnosis}",
+            $"Género: {patient.Gender ?? "Não especificado"}",
+            $"Telefone: {patient.PhoneNumber ?? "Não especificado"}",
+            $"Email: {patient.Email ?? "Não especificado"}",
             caregiverText,
-            $"Referral reason: {patient.ReferralReason ?? "Not specified"}",
-            $"General notes: {patient.GeneralNotes ?? "None"}"
+            $"Motivo de referência: {patient.ReferralReason ?? "Não especificado"}",
+            $"Notas gerais: {patient.GeneralNotes ?? "Sem notas gerais"}"
         });
     }
 
@@ -84,9 +86,9 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
     {
         return string.Join(Environment.NewLine, new[]
         {
-            $"This report covers {patient.Name} from {periodStart:dd MMM yyyy} to {periodEnd:dd MMM yyyy}.",
-            $"During this period, {dashboard.Attendance.CompletedSessions} sessions were completed out of {dashboard.Attendance.TotalSessions} total sessions.",
-            $"The current goal completion rate is {dashboard.Goals.CompletionRate:0.#}% across {dashboard.Goals.TotalGoals} goals."
+            $"Este relatório acompanha {patient.Name} no período entre {periodStart.ToString("dd MMM yyyy", PtPt)} e {periodEnd.ToString("dd MMM yyyy", PtPt)}.",
+            $"Neste período foram concluídas {dashboard.Attendance.CompletedSessions} sessões num total de {dashboard.Attendance.TotalSessions} sessões registadas.",
+            $"A taxa atual de objetivos alcançados é de {dashboard.Goals.CompletionRate:0.#}% em {dashboard.Goals.TotalGoals} objetivos terapêuticos."
         });
     }
 
@@ -94,54 +96,54 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
     {
         return string.Join(Environment.NewLine, new[]
         {
-            $"Completed sessions: {dashboard.Attendance.CompletedSessions}",
-            $"Cancelled sessions: {dashboard.Attendance.CancelledSessions}",
-            $"No-show sessions: {dashboard.Attendance.NoShowSessions}",
-            $"Upcoming sessions: {dashboard.Attendance.UpcomingSessions}",
-            $"Pending registration sessions: {dashboard.Attendance.PendingRegistrationSessions}",
-            $"Attendance rate: {dashboard.Attendance.AttendanceRate:0.#}%"
+            $"Sessões concluídas: {dashboard.Attendance.CompletedSessions}",
+            $"Sessões canceladas: {dashboard.Attendance.CancelledSessions}",
+            $"Faltas: {dashboard.Attendance.NoShowSessions}",
+            $"Sessões futuras: {dashboard.Attendance.UpcomingSessions}",
+            $"Sessões pendentes de registo: {dashboard.Attendance.PendingRegistrationSessions}",
+            $"Taxa de presença: {dashboard.Attendance.AttendanceRate:0.#}%"
         });
     }
 
     private static string BuildGoalProgressSummary(IEnumerable<TherapeuticGoal> goals, PatientProgressDashboardDto dashboard)
     {
         var goalList = goals.Any()
-            ? string.Join(", ", goals.Select(goal => $"{goal.Area} ({goal.Status})"))
-            : "No goals recorded yet.";
+            ? string.Join(", ", goals.Select(goal => $"{goal.Area} ({LocalizeGoalStatus(goal.Status.ToString())})"))
+            : "Ainda não existem objetivos registados.";
 
         return string.Join(Environment.NewLine, new[]
         {
-            $"Total goals: {dashboard.Goals.TotalGoals}",
-            $"Not started: {dashboard.Goals.NotStartedGoals}",
-            $"In progress: {dashboard.Goals.InProgressGoals}",
-            $"Achieved: {dashboard.Goals.AchievedGoals}",
-            $"Suspended: {dashboard.Goals.SuspendedGoals}",
-            $"Completion rate: {dashboard.Goals.CompletionRate:0.#}%",
-            $"Goal areas: {goalList}"
+            $"Total de objetivos: {dashboard.Goals.TotalGoals}",
+            $"Não iniciados: {dashboard.Goals.NotStartedGoals}",
+            $"Em progresso: {dashboard.Goals.InProgressGoals}",
+            $"Alcançados: {dashboard.Goals.AchievedGoals}",
+            $"Suspensos: {dashboard.Goals.SuspendedGoals}",
+            $"Taxa de conclusão: {dashboard.Goals.CompletionRate:0.#}%",
+            $"Áreas trabalhadas: {goalList}"
         });
     }
 
     private static string BuildSessionSummary(IEnumerable<Session> sessions, PatientProgressDashboardDto dashboard)
     {
         var lastSessionText = dashboard.LastSession == null
-            ? "No completed or past session available."
-            : $"Last session: {dashboard.LastSession.StartDateTime:dd MMM yyyy HH:mm} - {dashboard.LastSession.Type} - {dashboard.LastSession.Status}";
+            ? "Ainda não existe sessão anterior concluída ou realizada."
+            : $"Última sessão: {dashboard.LastSession.StartDateTime.ToString("dd MMM yyyy HH:mm", PtPt)} - {LocalizeSessionType(dashboard.LastSession.Type.ToString())} - {LocalizeSessionStatus(dashboard.LastSession.Status.ToString())}";
 
         var nextSessionText = dashboard.NextSession == null
-            ? "No upcoming session scheduled."
-            : $"Next session: {dashboard.NextSession.StartDateTime:dd MMM yyyy HH:mm} - {dashboard.NextSession.Type} - {dashboard.NextSession.Location}";
+            ? "Não existe próxima sessão agendada."
+            : $"Próxima sessão: {dashboard.NextSession.StartDateTime.ToString("dd MMM yyyy HH:mm", PtPt)} - {LocalizeSessionType(dashboard.NextSession.Type.ToString())} - {dashboard.NextSession.Location}";
 
         var recentSessions = sessions
             .OrderByDescending(session => session.StartDateTime)
             .Take(5)
-            .Select(session => $"{session.StartDateTime:dd MMM yyyy HH:mm} - {session.Type} - {session.Status}");
+            .Select(session => $"{session.StartDateTime.ToString("dd MMM yyyy HH:mm", PtPt)} - {LocalizeSessionType(session.Type.ToString())} - {LocalizeSessionStatus(session.Status.ToString())}");
 
         return string.Join(Environment.NewLine, new[]
         {
             lastSessionText,
             nextSessionText,
-            "Recent sessions:",
-            string.Join(Environment.NewLine, recentSessions.DefaultIfEmpty("No sessions available.")),
+            "Sessões recentes:",
+            string.Join(Environment.NewLine, recentSessions.DefaultIfEmpty("Sem sessões registadas.")),
             string.Empty
         });
     }
@@ -160,9 +162,45 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
 
         return string.Join(Environment.NewLine, new[]
         {
-            $"Continue working on the current clinical plan for {patient.Name}.",
-            "Review the active goals at the next scheduled session.",
-            "Capture new checkpoints session by session so the next report can be generated faster."
+            $"Continuar a trabalhar o plano clínico atual de {patient.Name}.",
+            "Rever os objetivos ativos na próxima sessão agendada.",
+            "Registar checkpoints sessão a sessão para que o próximo relatório possa ser gerado mais rapidamente."
         });
+    }
+
+    private static string LocalizeGoalStatus(string status)
+    {
+        return status switch
+        {
+            "NotStarted" => "não iniciado",
+            "InProgress" => "em progresso",
+            "Achieved" => "alcançado",
+            "Suspended" => "suspenso",
+            _ => status
+        };
+    }
+
+    private static string LocalizeSessionStatus(string status)
+    {
+        return status switch
+        {
+            "Scheduled" => "agendada",
+            "Rescheduled" => "reagendada",
+            "Completed" => "concluída",
+            "Cancelled" => "cancelada",
+            "NoShow" => "falta",
+            _ => status
+        };
+    }
+
+    private static string LocalizeSessionType(string type)
+    {
+        return type switch
+        {
+            "Assessment" => "avaliação",
+            "Intervention" => "intervenção",
+            "FollowUp" => "seguimento",
+            _ => type
+        };
     }
 }
