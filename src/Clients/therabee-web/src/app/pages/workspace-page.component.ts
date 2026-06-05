@@ -41,7 +41,6 @@ type Patient = {
 type TherapeuticGoal = {
   id: string;
   patientId: string;
-  parentGoalId?: string | null;
   type: string;
   description: string;
   area: string;
@@ -153,7 +152,6 @@ type PatientEditForm = {
 
 type GoalForm = {
   type: string;
-  parentGoalId: string;
   description: string;
   area: string;
   priority: string;
@@ -250,8 +248,7 @@ export class WorkspacePageComponent {
   });
 
   readonly goalForm = signal<GoalForm>({
-    type: 'ShortTerm',
-    parentGoalId: '',
+    type: 'Objective',
     description: 'Melhorar coordenacao motora fina',
     area: 'Motricidade fina',
     priority: 'Medium',
@@ -280,11 +277,11 @@ export class WorkspacePageComponent {
   readonly selectedPatient = computed(() => this.selectedPatientDetail() ?? this.patients().find((patient) => patient.id === this.selectedPatientId()) ?? null);
   readonly selectedSession = computed(() => this.selectedSessionDetail() ?? this.sessions().find((session) => session.id === this.selectedSessionId()) ?? null);
   readonly selectedPatientGoals = computed(() => this.goals().filter((goal) => goal.patientId === this.selectedPatientId()));
-  readonly selectedPatientLongTermGoals = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'LongTerm'));
-  readonly selectedPatientShortTermGoals = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'ShortTerm'));
+  readonly selectedPatientAreas = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'Area'));
+  readonly selectedPatientObjectives = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'Objective'));
   readonly availableSessionGoals = computed(() => this.sessionForm().type === 'Intervention'
-    ? this.selectedPatientShortTermGoals()
-    : this.selectedPatientLongTermGoals());
+    ? this.selectedPatientObjectives()
+    : this.selectedPatientAreas());
   readonly selectedPatientSessions = computed(() => this.sessions().filter((session) => session.patientId === this.selectedPatientId()).sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
   readonly selectedPatientReports = computed(() => this.reports().filter((report) => report.patientId === this.selectedPatientId()).sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
   readonly allSessions = computed(() => this.sessions().slice().sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
@@ -375,13 +372,7 @@ export class WorkspacePageComponent {
   }
 
   updateGoal(field: keyof GoalForm, value: string) {
-    this.goalForm.update((form) => {
-      const next = { ...form, [field]: value };
-      if (field === 'type' && value !== 'ShortTerm') {
-        next.parentGoalId = '';
-      }
-      return next;
-    });
+    this.goalForm.update((form) => ({ ...form, [field]: value }));
   }
 
   updateSession(field: keyof SessionForm, value: string) {
@@ -508,7 +499,6 @@ export class WorkspacePageComponent {
         await firstValueFrom(this.http.put(`${API_BASE_URL}/therapy-goals/${editingGoalId}`, {
           goal: {
             type: form.type,
-            parentGoalId: form.parentGoalId || null,
             description: form.description,
             area: form.area,
             priority: form.priority,
@@ -519,7 +509,6 @@ export class WorkspacePageComponent {
         await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, {
           goal: {
             type: form.type,
-            parentGoalId: form.parentGoalId || null,
             description: form.description,
             area: form.area,
             priority: form.priority,
@@ -538,7 +527,6 @@ export class WorkspacePageComponent {
     this.editingGoalId.set(goal.id);
     this.goalForm.set({
       type: goal.type,
-      parentGoalId: goal.parentGoalId ?? '',
       description: goal.description,
       area: goal.area,
       priority: goal.priority,
@@ -549,8 +537,7 @@ export class WorkspacePageComponent {
   cancelGoalEditing() {
     this.editingGoalId.set('');
     this.goalForm.set({
-      type: 'ShortTerm',
-      parentGoalId: '',
+      type: 'Objective',
       description: 'Melhorar coordenacao motora fina',
       area: 'Motricidade fina',
       priority: 'Medium',
@@ -836,15 +823,15 @@ export class WorkspacePageComponent {
 
   goalTypeLabel(type: string) {
     return {
-      LongTerm: 'Longo prazo',
-      ShortTerm: 'Curto prazo',
+      Area: 'Area',
+      Objective: 'Objetivo',
     }[type] ?? type;
   }
 
   sessionGoalContextLabel() {
     return this.sessionForm().type === 'Intervention'
-      ? 'Objetivos de curto prazo'
-      : 'Objetivos de longo prazo';
+      ? 'Objetivos'
+      : 'Areas';
   }
 
   isSessionGoalSelected(goalId: string) {
@@ -862,12 +849,8 @@ export class WorkspacePageComponent {
 
   goalIdsForSessionType(sessionType: string) {
     return sessionType === 'Intervention'
-      ? this.selectedPatientShortTermGoals().map((goal) => goal.id)
-      : this.selectedPatientLongTermGoals().map((goal) => goal.id);
-  }
-
-  goalDescriptionById(goalId: string) {
-    return this.goals().find((goal) => goal.id === goalId)?.description ?? goalId;
+      ? this.selectedPatientObjectives().map((goal) => goal.id)
+      : this.selectedPatientAreas().map((goal) => goal.id);
   }
 
   sessionStatusLabel(status: string) {

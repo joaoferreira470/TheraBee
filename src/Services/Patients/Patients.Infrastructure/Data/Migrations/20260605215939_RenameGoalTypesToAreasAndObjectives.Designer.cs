@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Patients.Infrastructure.Data;
@@ -12,9 +13,11 @@ using Patients.Infrastructure.Data;
 namespace Patients.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260605215939_RenameGoalTypesToAreasAndObjectives")]
+    partial class RenameGoalTypesToAreasAndObjectives
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,6 +372,9 @@ namespace Patients.Infrastructure.Data.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("ParentAreaId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
 
@@ -394,6 +400,8 @@ namespace Patients.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentAreaId");
 
                     b.HasIndex("TherapistId", "PatientId");
 
@@ -514,6 +522,16 @@ namespace Patients.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Patients.Domain.Models.TherapeuticGoal", b =>
+                {
+                    b.HasOne("Patients.Domain.Models.TherapeuticGoal", "ParentArea")
+                        .WithMany("Objectives")
+                        .HasForeignKey("ParentAreaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ParentArea");
+                });
+
             modelBuilder.Entity("Patients.Domain.Models.TherapistProfile", b =>
                 {
                     b.HasOne("Patients.Domain.Models.User", null)
@@ -526,6 +544,11 @@ namespace Patients.Infrastructure.Data.Migrations
             modelBuilder.Entity("Patients.Domain.Models.Session", b =>
                 {
                     b.Navigation("SessionGoals");
+                });
+
+            modelBuilder.Entity("Patients.Domain.Models.TherapeuticGoal", b =>
+                {
+                    b.Navigation("Objectives");
                 });
 #pragma warning restore 612, 618
         }

@@ -19,8 +19,8 @@ The application should follow this clinical loop:
 ```text
 Therapist
   -> Patient
-    -> Long Term Goals
-    -> Short Term Goals
+    -> Areas
+    -> Objectives
     -> Assessment Session
     -> Therapy Sessions
     -> Reassessment Session
@@ -43,38 +43,42 @@ Current backend has generic session types, but the product meaning needs to be r
 - [x] Rename or map `Reassessment` to `ReassessmentSession`.
 - [x] Enforce clinical behavior per session type.
 
-### Goal Types
+### Areas And Objectives
 
-Goals should behave like reusable definitions owned by the patient, almost like clinical "classes". A session can attach instances of those goals over time.
+Areas and objectives should behave like reusable definitions owned by the patient, almost like clinical "classes". A session can attach instances of those definitions over time.
 
-- [x] `LongTermGoal`: macro clinical direction, usually defined and evaluated in assessment/reassessment sessions.
-- [x] `ShortTermGoal`: operational goal, usually worked during therapy sessions.
-- [x] `ShortTermGoal` can optionally reference a parent `LongTermGoal`.
-- [x] Goals can be created independently from sessions.
-- [x] Goals can be reused across multiple sessions.
-- [x] Goals have area, priority, status, review date, and type.
+Areas and objectives are independent presets. An objective does not need to be a child of an area.
+
+- [x] `Area`: macro clinical domain that can be evaluated over time.
+- [x] `Objective`: concrete therapeutic objective that can be evaluated over time.
+- [x] Areas and objectives can be created independently from sessions.
+- [x] Areas and objectives can be reused across multiple sessions.
+- [x] Areas and objectives have area/category text, priority, status, review date, and type.
+- [x] Areas and objectives do not require a parent/child relationship.
 
 Recommended relationship:
 
 ```text
-LongTermGoal
-  -> ShortTermGoal
-  -> ShortTermGoal
+Area
+  -> reusable preset for assessment and reassessment sessions
+
+Objective
+  -> reusable preset for therapeutic sessions
 
 Session
   -> SessionGoal
   -> SessionGoalAssessment
 ```
 
-### Goal Selection Rules
+### Selection Rules
 
-The app should help the therapist pick the right goal presets based on session type.
+The app should help the therapist attach the right clinical definitions to a session.
 
-- [x] When creating/editing an `AssessmentSession`, the goal picker should show `LongTermGoal` presets.
-- [x] When creating/editing a `ReassessmentSession`, the goal picker should show `LongTermGoal` presets.
-- [x] When creating/editing a `TherapySession`, the goal picker should show `ShortTermGoal` presets.
-- [x] Frontend should filter goals contextually.
-- [x] Backend should validate the selected goals against the session type.
+- [x] When creating/editing a session, the picker should show patient areas and objectives.
+- [x] Frontend should group areas and objectives clearly.
+- [x] Backend should validate selected areas/objectives belong to the same patient and therapist.
+- [x] Assessment and reassessment sessions can attach only areas.
+- [x] Therapeutic sessions can attach only objectives.
 
 ### Goal Assessment Scale
 
@@ -91,7 +95,7 @@ Each session should be able to record the patient's response to each attached go
 This enables:
 
 ```text
-Goal: Maintain attention for 10 minutes
+Objective: Maintain attention for 10 minutes
 Session 1: 3/10
 Session 2: 5/10
 Session 3: 7/10
@@ -157,7 +161,7 @@ The Angular application should become a routed product rather than a single oper
 - [ ] Patient edit flow is integrated in Angular.
 - [ ] Patient delete/archive flow is integrated in Angular.
 - [ ] Patient page shows full patient profile.
-- [ ] Patient page shows goals grouped by long-term and short-term.
+- [ ] Patient page shows clinical definitions grouped by areas and objectives.
 - [ ] Patient page shows attended sessions and their assessments.
 - [ ] Patient page shows scheduled sessions that have not occurred yet.
 - [ ] Patient search/filtering supports name, status, diagnosis, age, and future-session gaps.
@@ -169,8 +173,8 @@ The Angular application should become a routed product rather than a single oper
 - [x] Goals include area, priority, status, and review date.
 - [x] Goals can be associated with sessions.
 - [x] Goal progress can be summarized with current dashboard logic.
-- [ ] Goals support `LongTerm` and `ShortTerm` types.
-- [ ] Short-term goals can optionally reference a parent long-term goal.
+- [x] Goals support `Area` and `Objective` types.
+- [x] Areas and objectives are independent presets.
 - [ ] Goal create/edit UI supports type selection.
 - [ ] Goal picker is filtered by session type.
 - [ ] Goal progress is based on 0-10 session assessments.
@@ -185,8 +189,10 @@ The Angular application should become a routed product rather than a single oper
 - [x] Session history can be listed by patient.
 - [x] Sessions pending registration can be identified.
 - [ ] Session model is aligned with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
-- [ ] Therapy sessions can attach short-term goals.
-- [ ] Assessment/reassessment sessions can attach long-term goals.
+- [x] Sessions can attach areas or objectives according to session type.
+- [x] Session goal selection validates patient and therapist ownership.
+- [x] Assessment and reassessment sessions accept only areas.
+- [x] Therapeutic sessions accept only objectives.
 - [ ] Session page exists in Angular.
 - [ ] Session page title follows `Session X | Patient Name, Age`.
 - [ ] Session details can be edited and saved.
@@ -198,8 +204,8 @@ The Angular application should become a routed product rather than a single oper
 - [ ] Session goal assessment domain exists.
 - [ ] Each attached goal can be scored from `0` to `10`.
 - [ ] Each attached goal can store clinical notes.
-- [ ] Therapy sessions assess short-term goals.
-- [ ] Assessment/reassessment sessions assess long-term goals.
+- [ ] Sessions can assess attached areas.
+- [ ] Sessions can assess attached objectives.
 - [ ] Assessment data is stored for dashboards.
 - [ ] Assessment data is stored for reports.
 - [ ] Session page includes goal assessment controls.
@@ -214,7 +220,7 @@ The Angular application should become a routed product rather than a single oper
 - [x] Dashboard data can be consumed by Angular.
 - [x] Dashboard data can be reused by reports.
 - [ ] Dashboard uses 0-10 goal assessment trends.
-- [ ] Dashboard separates long-term and short-term progress.
+- [ ] Dashboard separates area and objective progress.
 - [ ] Dashboard shows per-goal line trends.
 - [ ] Dashboard highlights stagnant goals.
 - [ ] Dashboard highlights goals with strongest progress.
@@ -234,7 +240,7 @@ The Angular application should become a routed product rather than a single oper
 - [ ] Reports can be generated for a user-selected date interval.
 - [ ] Reports can be generated for a therapeutic cycle.
 - [ ] Reports include visual goal progress charts.
-- [ ] Reports group evidence by long-term and short-term goals.
+- [ ] Reports group evidence by areas and objectives.
 - [ ] Reports use session goal assessment scores.
 - [ ] Report generation can export directly to PDF or Word based on user choice.
 
@@ -253,7 +259,7 @@ The Angular application should become a routed product rather than a single oper
 - [x] UI is responsive for desktop, tablet, and mobile.
 - [x] Angular uses real routes for login, therapist hub, patient page, and session page.
 - [x] Patient edit screen calls the backend.
-- [ ] Goal create/edit UI supports goal type and parent goal.
+- [ ] Goal create/edit UI supports goal type.
 - [ ] Session create/edit UI uses context-aware goal picker.
 - [ ] Session page supports goal scoring 0-10.
 - [ ] Report UI supports date interval and export format choice.
@@ -349,8 +355,8 @@ The Angular application should become a routed product rather than a single oper
 
 ### Phase 10: Clinical Goal Model
 
-- [x] Add `GoalType` enum with `LongTerm` and `ShortTerm`.
-- [x] Add optional parent goal relationship for short-term goals.
+- [x] Add `GoalType` enum with `Area` and `Objective`.
+- [x] Keep areas and objectives as independent presets.
 - [x] Update goal create/update DTOs and validators.
 - [x] Update EF Core configuration and migrations.
 - [x] Update goal endpoints and query responses.
@@ -362,8 +368,8 @@ The Angular application should become a routed product rather than a single oper
 - [ ] Align session types with `AssessmentSession`, `TherapySession`, and `ReassessmentSession`.
 - [x] Add or map session type labels in backend and frontend.
 - [x] Implement context-aware goal picker.
-- [x] Filter long-term goals for assessment/reassessment sessions.
-- [x] Filter short-term goals for therapy sessions.
+- [x] Show areas for assessment/reassessment sessions and objectives for therapeutic sessions.
+- [x] Validate selected areas/objectives belong to the same patient and therapist.
 - [x] Validate selected goals against session type in backend.
 - [ ] Add schedule overlap validation for create/reschedule.
 - [ ] Define whether session removal means delete or cancel.
@@ -385,12 +391,12 @@ The Angular application should become a routed product rather than a single oper
 
 - [ ] Rework dashboard metrics to use 0-10 goal assessment trends.
 - [ ] Add per-goal progress charts in Angular.
-- [ ] Add long-term versus short-term progress views.
+- [ ] Add area versus objective progress views.
 - [ ] Add report date interval selection.
 - [ ] Generate reports from selected date interval.
 - [ ] Generate reports from therapeutic cycle.
 - [ ] Include goal progress visuals in PDF and Word.
-- [ ] Group report sections by long-term and short-term goals.
+- [ ] Group report sections by areas and objectives.
 
 ### Phase 14: Online Test Deployment
 
@@ -417,8 +423,8 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Patient endpoints require authentication.
 - [x] Patients are associated with the authenticated therapist.
 - [x] Patient model supports the current MVP shape.
-- [x] Therapy goals are implemented with `LongTerm` and `ShortTerm` types.
-- [x] Short-term goals can optionally reference a parent long-term goal.
+- [x] Therapy goals are implemented with `Area` and `Objective` types.
+- [x] Areas and objectives are independent presets.
 - [x] Session goal selection is validated against session type.
 - [x] Sessions are implemented with the current clinical-type mapping.
 - [x] Progress dashboards are implemented with current simplified metrics.
@@ -475,5 +481,5 @@ Session model semantics -> session goal assessments -> dashboards -> visual repo
 This sequence keeps the product usable while progressively aligning the data model with the clinical workflow:
 
 ```text
-Long-term goals -> short-term goals -> contextual session goal selection -> session goal assessments -> dashboards -> visual reports
+Areas -> objectives -> session selection -> session assessments -> dashboards -> visual reports
 ```

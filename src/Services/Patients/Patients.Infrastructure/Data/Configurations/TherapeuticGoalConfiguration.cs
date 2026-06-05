@@ -15,8 +15,6 @@ public class TherapeuticGoalConfiguration : IEntityTypeConfiguration<Therapeutic
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(goal => goal.ParentGoalId);
-
         builder.Property(goal => goal.Description)
             .HasMaxLength(500)
             .IsRequired();
@@ -42,11 +40,6 @@ public class TherapeuticGoalConfiguration : IEntityTypeConfiguration<Therapeutic
 
         builder.Property(goal => goal.TherapistId)
             .IsRequired();
-
-        builder.HasOne(goal => goal.ParentGoal)
-            .WithMany(goal => goal.ChildGoals)
-            .HasForeignKey(goal => goal.ParentGoalId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(goal => new { goal.TherapistId, goal.PatientId });
     }

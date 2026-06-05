@@ -210,21 +210,10 @@
                 <label>
                   Tipo
                   <select [value]="goalForm().type" (change)="updateGoal('type', $any($event.target).value)">
-                    <option value="LongTerm">Long term</option>
-                    <option value="ShortTerm">Short term</option>
+                    <option value="Area">Area</option>
+                    <option value="Objective">Objetivo</option>
                   </select>
                 </label>
-                @if (goalForm().type === 'ShortTerm') {
-                  <label>
-                    Long term goal pai
-                    <select [value]="goalForm().parentGoalId" (change)="updateGoal('parentGoalId', $any($event.target).value)">
-                      <option value="">Sem parent</option>
-                      @for (parentGoal of selectedPatientLongTermGoals(); track parentGoal.id) {
-                        <option [value]="parentGoal.id">{{ parentGoal.description }}</option>
-                      }
-                    </select>
-                  </label>
-                }
                 <label class="wide">Descricao<input [value]="goalForm().description" (input)="updateGoal('description', $any($event.target).value)" /></label>
                 <label>Area<input [value]="goalForm().area" (input)="updateGoal('area', $any($event.target).value)" /></label>
                 <label>Prioridade
@@ -244,11 +233,11 @@
               <div class="stack separated">
                 <article class="goal-group">
                   <div class="panel-heading">
-                    <h3>Long term goals</h3>
-                    <span>{{ selectedPatientLongTermGoals().length }} objetivos</span>
+                    <h3>Areas</h3>
+                    <span>{{ selectedPatientAreas().length }} areas</span>
                   </div>
                   <div class="stack">
-                    @for (goal of selectedPatientLongTermGoals(); track goal.id) {
+                    @for (goal of selectedPatientAreas(); track goal.id) {
                       <article class="list-card">
                         <strong>{{ goal.description }}</strong>
                         <span>{{ goalTypeLabel(goal.type) }} - {{ goal.area }} - {{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
@@ -266,18 +255,15 @@
 
                 <article class="goal-group">
                   <div class="panel-heading">
-                    <h3>Short term goals</h3>
-                    <span>{{ selectedPatientShortTermGoals().length }} objetivos</span>
+                    <h3>Objetivos</h3>
+                    <span>{{ selectedPatientObjectives().length }} objetivos</span>
                   </div>
                   <div class="stack">
-                    @for (goal of selectedPatientShortTermGoals(); track goal.id) {
+                    @for (goal of selectedPatientObjectives(); track goal.id) {
                       <article class="list-card">
                         <strong>{{ goal.description }}</strong>
                         <span>{{ goalTypeLabel(goal.type) }} - {{ goal.area }} - {{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
                         <small>Revisao: {{ formatDate(goal.reviewDate) }}</small>
-                        @if (goal.parentGoalId) {
-                          <small>Parent: {{ goalDescriptionById(goal.parentGoalId) }}</small>
-                        }
                         <div class="inline-actions">
                           <button type="button" (click)="editGoal(goal)">Editar</button>
                           <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>

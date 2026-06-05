@@ -35,8 +35,8 @@ public class CreateSessionHandler(IApplicationDbContext dbContext, ICurrentUserS
         if (goalIds.Length > 0)
         {
             var expectedGoalType = command.Session.Type == SessionType.Intervention
-                ? TherapeuticGoalType.ShortTerm
-                : TherapeuticGoalType.LongTerm;
+                ? TherapeuticGoalType.Objective
+                : TherapeuticGoalType.Area;
 
             var goals = await dbContext.TherapeuticGoals
                 .Where(goal => goal.TherapistId == currentUserId

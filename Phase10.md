@@ -2,58 +2,60 @@
 
 ## Objective
 
-Separate therapeutic goals into two clinical layers:
+Separate therapeutic definitions into two clinical layers:
 
-- `LongTerm` goals for macro clinical direction and reassessment checkpoints.
-- `ShortTerm` goals for operational work inside therapy sessions.
+- `Area` for macro clinical domains.
+- `Objective` for concrete therapeutic goals.
 
-The goal of this phase was to make goals reusable definitions that can be attached to many sessions over time, while keeping the UI context-aware and the backend clinically safe.
+The goal of this phase was to make areas and objectives reusable patient-owned presets that can be attached to many sessions over time, while keeping the backend clinically safe.
+
+Areas and objectives are independent definitions. An objective does not need to belong to an area.
 
 ## What Was Implemented
 
 ### Domain And Persistence
 
-- Added `TherapeuticGoalType` with `LongTerm` and `ShortTerm`.
+- Added `TherapeuticGoalType` with `Area` and `Objective`.
 - Extended the `TherapeuticGoal` entity with:
   - `Type`
-  - `ParentGoalId`
-  - parent/child navigation properties
-- Added EF Core mapping for the self-referencing goal hierarchy.
-- Created a migration for the new schema.
+- Removed the previous parent/child goal relationship.
+- Added EF Core mapping for the independent goal type.
+- Created migrations for the schema changes.
 
 ### Application Layer
 
-- Updated goal DTOs to carry `Type` and `ParentGoalId`.
+- Updated goal DTOs to carry `Type`.
 - Updated goal mapping extensions.
 - Updated create/update goal commands and handlers.
-- Added validation so only short-term goals can reference a parent long-term goal.
-- Added backend validation so session goal selection must match session type.
+- Added backend validation so session goal selection belongs to the same patient and therapist.
+- Added backend validation so session goal selection matches the session type:
+  - assessment and reassessment sessions can attach only areas
+  - therapeutic sessions can attach only objectives
 - Added a dedicated session-goal replacement endpoint so the Angular session page can persist goal selections.
 
 ### Angular UI
 
 - Goal creation/editing now supports selecting:
-  - long-term goals
-  - short-term goals
-  - parent long-term goal for short-term goals
-- Patient page groups goals by type.
-- Session goal selection is contextual:
-  - therapy sessions show short-term goals
-  - assessment/reassessment sessions show long-term goals
+  - areas
+  - objectives
+- Patient page groups clinical definitions by type.
+- Session selection shows the correct preset type for the current session type.
 - Session creation/editing keeps selected goals aligned with the current session type.
 - Session editing persists selected goals through the replacement endpoint.
 
 ## Current Clinical Rule Set
 
 ```text
-LongTermGoal
-  -> may parent ShortTermGoal
+Area
+  -> independent preset used in Assessment/Reassessment sessions
 
-TherapySession
-  -> should use ShortTermGoal presets
+Objective
+  -> independent preset used in Therapy sessions
 
-AssessmentSession / ReassessmentSession
-  -> should use LongTermGoal presets
+Session
+  -> Assessment/Reassessment can attach Areas
+  -> Therapy can attach Objectives
+  -> attached items can later be assessed from 0 to 10
 ```
 
 ## Validation

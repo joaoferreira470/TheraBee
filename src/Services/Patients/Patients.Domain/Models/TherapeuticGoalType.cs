@@ -2,6 +2,6 @@ namespace Patients.Domain.Models;
 
 public enum TherapeuticGoalType
 {
-    LongTerm = 0,
-    ShortTerm = 1,
+    Area = 0,
+    Objective = 1,
 }

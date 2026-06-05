@@ -16,8 +16,5 @@ public class UpdateTherapeuticGoalValidator : AbstractValidator<UpdateTherapeuti
         RuleFor(x => x.Goal.Description).NotEmpty().MaximumLength(500).WithMessage("Description is required");
         RuleFor(x => x.Goal.Area).NotEmpty().MaximumLength(150).WithMessage("Area is required");
         RuleFor(x => x.Goal.Priority).IsInEnum().WithMessage("Priority is required");
-        RuleFor(x => x.Goal.ParentGoalId)
-            .Must((command, parentGoalId) => command.Goal.Type == TherapeuticGoalType.ShortTerm || parentGoalId == null)
-            .WithMessage("Only short-term goals can reference a parent goal");
     }
 }

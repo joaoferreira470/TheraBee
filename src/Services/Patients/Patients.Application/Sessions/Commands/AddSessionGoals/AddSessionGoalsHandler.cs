@@ -23,8 +23,8 @@ public class AddSessionGoalsHandler(IApplicationDbContext dbContext, ICurrentUse
             .ToArray();
 
         var expectedGoalType = session.Type == SessionType.Intervention
-            ? TherapeuticGoalType.ShortTerm
-            : TherapeuticGoalType.LongTerm;
+            ? TherapeuticGoalType.Objective
+            : TherapeuticGoalType.Area;
 
         var goals = await dbContext.TherapeuticGoals
             .Where(goal => goal.TherapistId == currentUserId

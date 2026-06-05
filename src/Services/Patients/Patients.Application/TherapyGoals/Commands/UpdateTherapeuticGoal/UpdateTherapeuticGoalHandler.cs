@@ -16,23 +16,8 @@ public class UpdateTherapeuticGoalHandler(IApplicationDbContext dbContext, ICurr
             throw new TherapeuticGoalNotFoundException(command.GoalId);
         }
 
-        if (command.Goal.ParentGoalId is Guid parentGoalId)
-        {
-            var parentGoal = await dbContext.TherapeuticGoals
-                .FirstOrDefaultAsync(item => item.Id == parentGoalId
-                    && item.PatientId == goal.PatientId
-                    && item.TherapistId == currentUserId,
-                    cancellationToken);
-
-            if (parentGoal == null || parentGoal.Type != TherapeuticGoalType.LongTerm)
-            {
-                throw new InvalidOperationException("Short-term goals must reference an existing long-term goal for the same patient.");
-            }
-        }
-
         goal.Update(
             type: command.Goal.Type,
-            parentGoalId: command.Goal.ParentGoalId,
             description: command.Goal.Description.Trim(),
             area: command.Goal.Area.Trim(),
             priority: command.Goal.Priority,
