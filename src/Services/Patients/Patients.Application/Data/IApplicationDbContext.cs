@@ -9,6 +9,7 @@ public interface IApplicationDbContext
     DbSet<TherapeuticGoal> TherapeuticGoals { get; }
     DbSet<Session> Sessions { get; }
     DbSet<SessionGoal> SessionGoals { get; }
+    DbSet<Report> Reports { get; }
     DbSet<User> Users { get; }
     DbSet<TherapistProfile> TherapistProfiles { get; }
 

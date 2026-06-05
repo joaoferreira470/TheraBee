@@ -7,7 +7,7 @@ TheraBee is a clinical workspace for therapists who need to turn session-by-sess
 The strongest MVP promise is:
 
 ```text
-Session checkpoints -> measurable progress -> report draft -> PDF for families, caregivers, institutions, or clinical records
+Session checkpoints -> measurable progress -> report draft -> PDF or Word for families, caregivers, institutions, or clinical records
 ```
 
 The application should still support patient management, scheduling, and therapist profiles, but the core differentiator is reducing report-writing time and making therapeutic progress easier to explain visually.
@@ -90,13 +90,14 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Reports
 
-- [ ] Report domain exists.
-- [ ] Report draft can be generated from patient, goals, sessions, and checkpoints.
-- [ ] Report draft can include dashboard-style progress summaries.
-- [ ] Report content can be edited before export.
-- [ ] Report can be exported to PDF.
-- [ ] Generated reports are stored in patient history.
-- [ ] Report generation is restricted to the owning therapist.
+- [x] Report domain exists.
+- [x] Report draft can be generated from patient, goals, sessions, and checkpoints.
+- [x] Report draft can include dashboard-style progress summaries.
+- [x] Report content can be edited before export.
+- [x] Report can be exported to PDF.
+- [x] Report can be exported to Word.
+- [x] Generated reports are stored in patient history.
+- [x] Report generation is restricted to the owning therapist.
 
 ### Angular Frontend
 
@@ -162,11 +163,12 @@ This keeps the architecture practical while focusing development on the painful 
 
 ### Phase 7: Reports And PDF
 
-- [ ] Add report model.
-- [ ] Generate report draft from patient profile, goals, sessions, checkpoints, and progress summaries.
-- [ ] Allow report draft review/edit before export.
-- [ ] Export report to PDF.
-- [ ] Store generated report history.
+- [x] Add report model.
+- [x] Generate report draft from patient profile, goals, sessions, checkpoints, and progress summaries.
+- [x] Allow report draft review/edit before export.
+- [x] Export report to PDF.
+- [x] Export report to Word.
+- [x] Store generated report history.
 
 ### Phase 8: Angular Frontend Integration
 
@@ -174,7 +176,7 @@ This keeps the architecture practical while focusing development on the painful 
 - [ ] Connect patient list/detail/create/edit flows.
 - [ ] Build session checkpoint workflow.
 - [ ] Build progress dashboard views.
-- [ ] Build report generation and PDF export flow.
+- [ ] Build report generation and PDF/Word export flow.
 
 ### Phase 9: Online Test Deployment
 
@@ -204,8 +206,9 @@ Before changing existing code, create or switch to a branch that matches the int
 - [x] Therapy goals are implemented.
 - [x] Sessions are implemented.
 - [x] Progress dashboards are implemented.
-- [ ] Reports are implemented.
-- [ ] PDF export is implemented.
+- [x] Reports are implemented.
+- [x] PDF export is implemented.
+- [x] Word export is implemented.
 
 ## Current Prototype
 
@@ -249,13 +252,13 @@ http://localhost:4200
 The next implementation step is now:
 
 ```text
-Phase 7: Reports And PDF -> Add report model
+Phase 8: Angular Frontend Integration -> Connect Angular auth flow to backend JWT endpoints
 ```
 
 After that, the roadmap should move toward:
 
 ```text
-Reports And PDF
+Angular Frontend Integration -> Online Test Deployment
 ```
 
 This sequence protects the key product idea: every session should produce structured data that later reduces report-writing effort and feeds visual progress explanations.

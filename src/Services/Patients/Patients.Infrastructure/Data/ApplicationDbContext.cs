@@ -14,6 +14,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<TherapeuticGoal> TherapeuticGoals => Set<TherapeuticGoal>();
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<SessionGoal> SessionGoals => Set<SessionGoal>();
+    public DbSet<Report> Reports => Set<Report>();
     public DbSet<User> Users => Set<User>();
     public DbSet<TherapistProfile> TherapistProfiles => Set<TherapistProfile>();
 

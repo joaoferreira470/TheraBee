@@ -39,6 +39,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 "Not found",
                 sessionNotFoundException.Message,
                 Array.Empty<object>()),
+            ReportNotFoundException reportNotFoundException => (
+                StatusCodes.Status404NotFound,
+                "Not found",
+                reportNotFoundException.Message,
+                Array.Empty<object>()),
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
                 "Not found",
