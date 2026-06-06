@@ -366,6 +366,22 @@
                 </dl>
               }
             </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Avaliacoes registadas</h2>
+                <span>{{ selectedPatientGoalAssessments().length }} entradas</span>
+              </div>
+              <div class="stack">
+                @for (assessment of selectedPatientGoalAssessments().slice(0, 6); track assessment.id) {
+                  <article class="list-card">
+                    <strong>{{ goalDescriptionById(assessment.therapeuticGoalId) }}</strong>
+                    <span>Score {{ assessment.score }}/10 - {{ formatDateTime(assessment.sessionStartDateTime) }}</span>
+                    <small>{{ assessment.clinicalNotes || 'Sem notas clinicas' }}</small>
+                  </article>
+                }
+              </div>
+            </article>
           </section>
         </section>
       } @else {
@@ -387,7 +403,7 @@
             </div>
             <div class="hero-actions">
               <button type="button" class="primary-button" (click)="saveSessionChanges()">Guardar</button>
-              <button type="button" class="ghost-button" (click)="completeSession(selectedSessionId())">Confirmar</button>
+              <button type="button" class="ghost-button" (click)="confirmSession()">Confirmar</button>
               <button type="button" class="ghost-button" (click)="cancelSession()">Cancelar sessao</button>
             </div>
           </article>
@@ -432,6 +448,29 @@
                 </div>
                 <button type="submit" class="primary-button">Guardar</button>
               </form>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Avaliacao dos objectivos</h2>
+                <span>Score de 0 a 10 e notas clinicas</span>
+              </div>
+              @if (selectedSessionGoals().length) {
+                <div class="stack">
+                  @for (goal of selectedSessionGoals(); track goal.id) {
+                    <article class="list-card goal-assessment-card">
+                      <strong>{{ goal.description }}</strong>
+                      <span>{{ goalTypeLabel(goal.type) }} - {{ goal.area }}</span>
+                      <div class="inline-actions assessment-inline">
+                        <label>Score<input type="number" min="0" max="10" [value]="assessmentForm()[goal.id]?.score ?? '0'" (input)="updateAssessment(goal.id, 'score', $any($event.target).value)" /></label>
+                      </div>
+                      <label>Notas clinicas<textarea rows="3" [value]="assessmentForm()[goal.id]?.clinicalNotes ?? ''" (input)="updateAssessment(goal.id, 'clinicalNotes', $any($event.target).value)"></textarea></label>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <p class="panel-copy">Esta sessao ainda nao tem objectivos associados para avaliar.</p>
+              }
             </article>
 
             <article class="panel">

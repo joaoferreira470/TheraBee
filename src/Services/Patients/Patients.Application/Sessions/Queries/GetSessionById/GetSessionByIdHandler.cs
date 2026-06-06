@@ -11,6 +11,7 @@ public class GetSessionByIdHandler(IApplicationDbContext dbContext, ICurrentUser
         var session = await dbContext.Sessions
             .AsNoTracking()
             .Include(session => session.SessionGoals)
+            .Include(session => session.SessionGoalAssessments)
             .FirstOrDefaultAsync(session => session.Id == query.SessionId && session.TherapistId == currentUserId, cancellationToken);
 
         if (session == null)

@@ -67,6 +67,11 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
             .HasForeignKey(sessionGoal => sessionGoal.SessionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasMany(session => session.SessionGoalAssessments)
+            .WithOne()
+            .HasForeignKey(assessment => assessment.SessionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasIndex(session => new { session.TherapistId, session.PatientId, session.StartDateTime });
     }
 }

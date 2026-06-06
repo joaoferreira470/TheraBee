@@ -66,6 +66,17 @@ type Session = {
   recommendations?: string | null;
   nextSteps?: string | null;
   goalIds: string[];
+  goalAssessments: SessionGoalAssessment[];
+};
+
+type SessionGoalAssessment = {
+  id: string;
+  sessionId: string;
+  therapeuticGoalId: string;
+  score: number;
+  clinicalNotes?: string | null;
+  sessionStartDateTime?: string | null;
+  createdAt?: string | null;
 };
 
 type ProgressDashboard = {
@@ -177,6 +188,11 @@ type CheckpointForm = {
   nextSteps: string;
 };
 
+type GoalAssessmentFormEntry = {
+  score: string;
+  clinicalNotes: string;
+};
+
 const API_BASE_URL = 'http://localhost:6001';
 const TOKEN_KEY = 'therabee_token';
 const USER_KEY = 'therabee_user';
@@ -204,6 +220,7 @@ export class WorkspacePageComponent {
   readonly sessions = signal<Session[]>([]);
   readonly goals = signal<TherapeuticGoal[]>([]);
   readonly reports = signal<Report[]>([]);
+  readonly patientGoalAssessments = signal<SessionGoalAssessment[]>([]);
   readonly dashboard = signal<ProgressDashboard | null>(null);
   readonly selectedPatientId = signal('');
   readonly selectedSessionId = signal('');
@@ -273,6 +290,7 @@ export class WorkspacePageComponent {
     recommendations: 'Manter rotina de exercicios curtos em casa.',
     nextSteps: 'Rever objetivos e aumentar complexidade gradualmente.',
   });
+  readonly assessmentForm = signal<Record<string, GoalAssessmentFormEntry>>({});
 
   readonly selectedPatient = computed(() => this.selectedPatientDetail() ?? this.patients().find((patient) => patient.id === this.selectedPatientId()) ?? null);
   readonly selectedSession = computed(() => this.selectedSessionDetail() ?? this.sessions().find((session) => session.id === this.selectedSessionId()) ?? null);
@@ -284,12 +302,24 @@ export class WorkspacePageComponent {
     : this.selectedPatientAreas());
   readonly selectedPatientSessions = computed(() => this.sessions().filter((session) => session.patientId === this.selectedPatientId()).sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
   readonly selectedPatientReports = computed(() => this.reports().filter((report) => report.patientId === this.selectedPatientId()).sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
+  readonly selectedPatientGoalAssessments = computed(() => this.patientGoalAssessments().slice().sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
   readonly allSessions = computed(() => this.sessions().slice().sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
   readonly upcomingSessions = computed(() => this.allSessions().filter((session) => session.status === 'Scheduled' || session.status === 'Rescheduled'));
   readonly therapistName = computed(() => this.user()?.name || 'Terapeuta');
   readonly currentPatientLabel = computed(() => {
     const patient = this.selectedPatient();
     return patient ? `Paciente ${patient.name}` : 'Paciente';
+  });
+  readonly selectedSessionGoals = computed(() => {
+    const patientGoals = new Map(this.selectedPatientGoals().map((goal) => [goal.id, goal]));
+    const goalIds = this.sessionForm().goalIds ?? [];
+    if (!goalIds.length) {
+      return [];
+    }
+
+    return goalIds
+      .map((goalId) => patientGoals.get(goalId))
+      .filter((goal): goal is TherapeuticGoal => Boolean(goal));
   });
   readonly currentSessionLabel = computed(() => {
     const patient = this.selectedPatient();
@@ -352,6 +382,7 @@ export class WorkspacePageComponent {
     this.sessions.set([]);
     this.goals.set([]);
     this.reports.set([]);
+    this.patientGoalAssessments.set([]);
     this.dashboard.set(null);
     this.selectedPatientId.set('');
     this.selectedSessionId.set('');
@@ -389,6 +420,17 @@ export class WorkspacePageComponent {
 
   updateCheckpoint(field: keyof CheckpointForm, value: string) {
     this.checkpointForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  updateAssessment(goalId: string, field: keyof GoalAssessmentFormEntry, value: string) {
+    this.assessmentForm.update((form) => ({
+      ...form,
+      [goalId]: {
+        score: form[goalId]?.score ?? '0',
+        clinicalNotes: form[goalId]?.clinicalNotes ?? '',
+        [field]: value,
+      },
+    }));
   }
 
   async createPatient() {
@@ -640,6 +682,34 @@ export class WorkspacePageComponent {
     }, 'Nao foi possivel concluir a sessao.');
   }
 
+  async confirmSession() {
+    const session = this.selectedSession();
+    if (!session) {
+      return;
+    }
+
+    const goals = this.selectedSessionGoals();
+    const form = this.assessmentForm();
+    const assessments = goals.map((goal) => ({
+      therapeuticGoalId: goal.id,
+      score: Number(form[goal.id]?.score ?? 0),
+      clinicalNotes: form[goal.id]?.clinicalNotes ?? '',
+    }));
+
+    await this.runApi(async () => {
+      await firstValueFrom(this.http.put(`${API_BASE_URL}/sessions/${session.id}/goal-assessments`, {
+        assessments: {
+          assessments,
+        },
+      }, { headers: this.authHeaders() }));
+
+      await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/complete`, { session: this.checkpointForm() }, { headers: this.authHeaders() }));
+
+      await this.loadPatientContext(session.patientId, session.id);
+      this.apiMessage.set('Avaliacoes submetidas e sessao confirmada.');
+    }, 'Nao foi possivel confirmar a sessao.');
+  }
+
   async createReportDraft() {
     const patientId = this.selectedPatientId();
     if (!patientId) {
@@ -710,11 +780,12 @@ export class WorkspacePageComponent {
 
     await this.runApi(async () => {
       const headers = this.authHeaders();
-      const [patientResponse, sessionsResponse, goalsResponse, reportsResponse, dashboardResponse] = await Promise.all([
+      const [patientResponse, sessionsResponse, goalsResponse, reportsResponse, assessmentsResponse, dashboardResponse] = await Promise.all([
         firstValueFrom(this.http.get<{ patient: Patient }>(`${API_BASE_URL}/patients/id/${patientId}`, { headers })),
         firstValueFrom(this.http.get<{ sessions: Session[] }>(`${API_BASE_URL}/patients/${patientId}/sessions`, { headers })),
         firstValueFrom(this.http.get<{ therapeuticGoals: TherapeuticGoal[] }>(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, { headers })),
         firstValueFrom(this.http.get<{ reports: Report[] }>(`${API_BASE_URL}/patients/${patientId}/reports`, { headers })),
+        firstValueFrom(this.http.get<{ assessments: SessionGoalAssessment[] }>(`${API_BASE_URL}/patients/${patientId}/goal-assessments`, { headers })),
         firstValueFrom(this.http.get<{ dashboard: ProgressDashboard }>(`${API_BASE_URL}/patients/${patientId}/progress-dashboard`, { headers })),
       ]);
 
@@ -731,6 +802,7 @@ export class WorkspacePageComponent {
         ...reports.filter((report) => report.patientId !== patientId),
         ...reportsResponse.reports,
       ]);
+      this.patientGoalAssessments.set(assessmentsResponse.assessments);
       this.dashboard.set(dashboardResponse.dashboard);
 
       const nextSessionId = sessionId || sessionsResponse.sessions[0]?.id || '';
@@ -766,6 +838,7 @@ export class WorkspacePageComponent {
           location: sessionResponse.session.location,
           goalIds: sessionResponse.session.goalIds ?? [],
         });
+        this.assessmentForm.set(this.buildAssessmentForm(sessionResponse.session));
         this.checkpointForm.set({
           clinicalSummary: sessionResponse.session.clinicalSummary ?? '',
           objectivesWorked: sessionResponse.session.objectivesWorked ?? '',
@@ -784,6 +857,7 @@ export class WorkspacePageComponent {
           location: 'Gabinete 1',
           goalIds: [],
         });
+        this.assessmentForm.set({});
       }
     }, 'Nao foi possivel carregar o contexto do paciente.');
   }
@@ -828,6 +902,10 @@ export class WorkspacePageComponent {
     }[type] ?? type;
   }
 
+  goalDescriptionById(goalId: string) {
+    return this.goals().find((goal) => goal.id === goalId)?.description ?? goalId;
+  }
+
   sessionGoalContextLabel() {
     return this.sessionForm().type === 'Intervention'
       ? 'Objetivos'
@@ -839,12 +917,31 @@ export class WorkspacePageComponent {
   }
 
   toggleSessionGoal(goalId: string) {
+    const shouldAdd = !this.sessionForm().goalIds.includes(goalId);
+
     this.sessionForm.update((form) => ({
       ...form,
-      goalIds: form.goalIds.includes(goalId)
-        ? form.goalIds.filter((item) => item !== goalId)
-        : [...form.goalIds, goalId],
+      goalIds: shouldAdd
+        ? [...form.goalIds, goalId]
+        : form.goalIds.filter((item) => item !== goalId),
     }));
+
+    this.assessmentForm.update((form) => {
+      if (shouldAdd) {
+        return {
+          ...form,
+          [goalId]: form[goalId] ?? { score: '0', clinicalNotes: '' },
+        };
+      }
+
+      if (!form[goalId]) {
+        return form;
+      }
+
+      const next = { ...form };
+      delete next[goalId];
+      return next;
+    });
   }
 
   goalIdsForSessionType(sessionType: string) {
@@ -935,5 +1032,27 @@ export class WorkspacePageComponent {
   private extractFileName(disposition: string | null) {
     const match = disposition?.match(/filename="?([^"]+)"?/i);
     return match?.[1];
+  }
+
+  private buildAssessmentForm(session: Session) {
+    const form: Record<string, GoalAssessmentFormEntry> = {};
+
+    for (const assessment of session.goalAssessments ?? []) {
+      form[assessment.therapeuticGoalId] = {
+        score: `${assessment.score}`,
+        clinicalNotes: assessment.clinicalNotes ?? '',
+      };
+    }
+
+    for (const goalId of session.goalIds ?? []) {
+      if (!form[goalId]) {
+        form[goalId] = {
+          score: '0',
+          clinicalNotes: '',
+        };
+      }
+    }
+
+    return form;
   }
 }

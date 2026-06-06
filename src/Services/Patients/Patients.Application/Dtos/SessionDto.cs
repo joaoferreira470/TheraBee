@@ -19,4 +19,5 @@ public record SessionDto(
     string? Recommendations,
     string? NextSteps,
     IEnumerable<Guid> GoalIds,
+    IEnumerable<SessionGoalAssessmentDto> GoalAssessments,
     DateTime? CreatedAt);

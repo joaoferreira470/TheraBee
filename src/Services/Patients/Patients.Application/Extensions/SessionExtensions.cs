@@ -23,6 +23,14 @@ public static class SessionExtensions
             Recommendations: session.Recommendations,
             NextSteps: session.NextSteps,
             GoalIds: session.SessionGoals.Select(goal => goal.TherapeuticGoalId),
+            GoalAssessments: session.SessionGoalAssessments.Select(assessment => new SessionGoalAssessmentDto(
+                assessment.Id,
+                assessment.SessionId,
+                assessment.TherapeuticGoalId,
+                assessment.Score,
+                assessment.ClinicalNotes,
+                session.StartDateTime,
+                assessment.CreatedAt)),
             CreatedAt: session.CreatedAt);
     }
 

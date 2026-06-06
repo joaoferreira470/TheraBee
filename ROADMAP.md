@@ -201,15 +201,15 @@ The Angular application should become a routed product rather than a single oper
 
 ### Session Goal Assessments
 
-- [ ] Session goal assessment domain exists.
-- [ ] Each attached goal can be scored from `0` to `10`.
-- [ ] Each attached goal can store clinical notes.
-- [ ] Sessions can assess attached areas.
-- [ ] Sessions can assess attached objectives.
-- [ ] Assessment data is stored for dashboards.
-- [ ] Assessment data is stored for reports.
-- [ ] Session page includes goal assessment controls.
-- [ ] Session page has a `Confirm` action to submit assessments.
+  - [x] Session goal assessment domain exists.
+  - [x] Each attached goal can be scored from `0` to `10`.
+  - [x] Each attached goal can store clinical notes.
+  - [x] Sessions can assess attached areas.
+  - [x] Sessions can assess attached objectives.
+  - [x] Assessment data is stored for dashboards.
+  - [x] Assessment data is stored for reports.
+  - [x] Session page includes goal assessment controls.
+  - [x] Session page has a `Confirm` action to submit assessments.
 
 ### Progress Dashboards
 
@@ -378,14 +378,14 @@ The Angular application should become a routed product rather than a single oper
 
 ### Phase 12: Session Goal Assessments
 
-- [ ] Add `SessionGoalAssessment` entity.
-- [ ] Add score `0-10` validation.
-- [ ] Add optional clinical notes per goal assessment.
-- [ ] Add create/update assessment commands.
-- [ ] Add assessment listing by session and patient.
-- [ ] Update session page with assessment controls.
-- [ ] Add `Confirm` action to submit session assessments.
-- [ ] Store assessment data for dashboards and reports.
+  - [x] Add `SessionGoalAssessment` entity.
+  - [x] Add score `0-10` validation.
+  - [x] Add optional clinical notes per goal assessment.
+  - [x] Add create/update assessment commands.
+  - [x] Add assessment listing by session and patient.
+  - [x] Update session page with assessment controls.
+  - [x] Add `Confirm` action to submit session assessments.
+  - [x] Store assessment data for dashboards and reports.
 
 ### Phase 13: Evidence-Based Dashboards And Reports
 
@@ -418,23 +418,24 @@ Before changing existing code, create or switch to a branch that matches the int
 ## Current Backend State
 
 - [x] Current branch is `feature/patients-v2`.
-- [x] `feature/patients-v2` includes the previous auth/therapist profile work.
-- [x] Patients API can build and run locally with Docker/PostgreSQL.
-- [x] Patient endpoints require authentication.
-- [x] Patients are associated with the authenticated therapist.
-- [x] Patient model supports the current MVP shape.
-- [x] Therapy goals are implemented with `Area` and `Objective` types.
-- [x] Areas and objectives are independent presets.
-- [x] Session goal selection is validated against session type.
-- [x] Sessions are implemented with the current clinical-type mapping.
-- [x] Progress dashboards are implemented with current simplified metrics.
-- [x] Reports are implemented with current simplified data model.
-- [x] PDF export is implemented.
-- [x] Word export is implemented.
-- [x] Report deletion/discard is implemented.
-- [ ] Goal scoring 0-10 is implemented.
-- [ ] Reports by date interval are implemented.
-- [x] Schedule overlap validation is implemented.
+  - [x] `feature/patients-v2` includes the previous auth/therapist profile work.
+  - [x] Patients API can build and run locally with Docker/PostgreSQL.
+  - [x] Patient endpoints require authentication.
+  - [x] Patients are associated with the authenticated therapist.
+  - [x] Patient model supports the current MVP shape.
+  - [x] Therapy goals are implemented with `Area` and `Objective` types.
+  - [x] Areas and objectives are independent presets.
+  - [x] Session goal selection is validated against session type.
+  - [x] Sessions are implemented with the current clinical-type mapping.
+  - [x] Session goal assessments are implemented.
+  - [x] Progress dashboards are implemented with current simplified metrics.
+  - [x] Reports are implemented with current simplified data model.
+  - [x] PDF export is implemented.
+  - [x] Word export is implemented.
+  - [x] Report deletion/discard is implemented.
+  - [x] Goal scoring 0-10 is implemented.
+  - [ ] Reports by date interval are implemented.
+  - [x] Schedule overlap validation is implemented.
 
 ## Current Angular Client
 
@@ -469,10 +470,10 @@ http://localhost:4200
 The next implementation step is:
 
 ```text
-Phase 12: Session Goal Assessments
-```
-
-After the session model is in place, the product should move toward:
+  Phase 13: Evidence-Based Dashboards And Reports
+  ```
+  
+  After the session goal assessments are in place, the product should move toward:
 
 ```text
 Session goal assessments -> dashboards -> visual reports

@@ -13,6 +13,7 @@ public class GetPendingRegistrationSessionsHandler(IApplicationDbContext dbConte
         var sessions = await dbContext.Sessions
             .AsNoTracking()
             .Include(session => session.SessionGoals)
+            .Include(session => session.SessionGoalAssessments)
             .Where(session => session.TherapistId == currentUserId
                 && (session.Status == SessionStatus.Scheduled || session.Status == SessionStatus.Rescheduled)
                 && session.EndDateTime <= now)

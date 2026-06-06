@@ -21,6 +21,7 @@ public class Session : Entity<Guid>
     public string? NextSteps { get; set; }
 
     public ICollection<SessionGoal> SessionGoals { get; set; } = new List<SessionGoal>();
+    public ICollection<SessionGoalAssessment> SessionGoalAssessments { get; set; } = new List<SessionGoalAssessment>();
 
     public static Session Create(
         Guid id,

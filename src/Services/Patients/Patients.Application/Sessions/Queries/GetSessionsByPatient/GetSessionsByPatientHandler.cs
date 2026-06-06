@@ -20,6 +20,7 @@ public class GetSessionsByPatientHandler(IApplicationDbContext dbContext, ICurre
         var sessions = await dbContext.Sessions
             .AsNoTracking()
             .Include(session => session.SessionGoals)
+            .Include(session => session.SessionGoalAssessments)
             .Where(session => session.PatientId == query.PatientId && session.TherapistId == currentUserId)
             .OrderByDescending(session => session.StartDateTime)
             .ToListAsync(cancellationToken);
