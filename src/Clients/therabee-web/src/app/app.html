@@ -24,7 +24,7 @@
 
     <div class="sidebar-note">
       <span>Estado</span>
-      <strong>{{ canUseWorkspace() ? 'Sessao ativa' : 'Login pendente' }}</strong>
+      <strong>{{ canUseWorkspace() ? 'Sessão ativa' : 'Login pendente' }}</strong>
     </div>
   </aside>
 
@@ -33,7 +33,7 @@
       <div>
         <p class="eyebrow">TheraBee MVP</p>
         <h1>Gestao terapeutica centrada no paciente</h1>
-        <p class="subtitle">Da sessao ao checkpoint, do checkpoint ao progresso, do progresso ao relatorio.</p>
+        <p class="subtitle">Da sessão ao checkpoint, do checkpoint ao progresso, do progresso ao relatório.</p>
       </div>
 
       <div class="status-card">
@@ -47,7 +47,7 @@
         } @else {
           <span class="avatar">?</span>
           <div>
-            <strong>Sem sessao</strong>
+            <strong>Sem sessão</strong>
             <span>Entra para sincronizar com a API</span>
           </div>
         }
@@ -70,7 +70,7 @@
           <h2>Comeca por ligar a interface ao backend local.</h2>
           <p>
             Depois do login, a app carrega os pacientes associados ao terapeuta e permite trabalhar objetivos,
-            sessoes, checkpoints, dashboards e relatorios.
+            sessões, checkpoints, dashboards e relatórios.
           </p>
         </article>
 
@@ -125,11 +125,11 @@
               <strong>{{ activePatientCount() }}</strong>
             </article>
             <article class="metric-card">
-              <span>Sessoes pendentes</span>
+              <span>Sessões pendentes</span>
               <strong>{{ pendingSessionCount() }}</strong>
             </article>
             <article class="metric-card">
-              <span>Sessoes concluidas</span>
+              <span>Sessões concluídas</span>
               <strong>{{ completedSessionCount() }}</strong>
             </article>
             <article class="metric-card">
@@ -166,12 +166,12 @@
               <article class="panel">
                 <div class="panel-heading">
                   <h2>Agenda clinica</h2>
-                  <span>Ultima e proxima sessao</span>
+                  <span>Última e próxima sessão</span>
                 </div>
                 <dl class="detail-list">
-                  <dt>Ultima sessao</dt>
+                  <dt>Última sessão</dt>
                   <dd>{{ formatDateTime(progress.lastSession?.startDateTime) }}</dd>
-                  <dt>Proxima sessao</dt>
+                  <dt>Próxima sessão</dt>
                   <dd>{{ formatDateTime(progress.nextSession?.startDateTime) }}</dd>
                   <dt>Pendentes de registo</dt>
                   <dd>{{ progress.attendance.pendingRegistrationSessions }}</dd>
@@ -209,8 +209,8 @@
                   <p>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</p>
                 </div>
                 <div class="hero-actions">
-                  <button type="button" class="primary-button" (click)="startSchedulingForSelectedPatient()">Agendar sessao</button>
-                  <button type="button" class="ghost-button" (click)="createReportDraft()">Gerar relatorio</button>
+                  <button type="button" class="primary-button" (click)="startSchedulingForSelectedPatient()">Agendar sessão</button>
+                  <button type="button" class="ghost-button" (click)="createReportDraft()">Gerar relatório</button>
                 </div>
               </article>
 
@@ -224,7 +224,7 @@
                   <strong>{{ achievedGoalCount() }}</strong>
                 </article>
                 <article class="metric-card">
-                  <span>Sessoes do paciente</span>
+                  <span>Sessões do paciente</span>
                   <strong>{{ selectedPatientSessions().length }}</strong>
                 </article>
                 <article class="metric-card">
@@ -240,18 +240,18 @@
                     <span>{{ patient.status }}</span>
                   </div>
                   <dl class="detail-list">
-                    <dt>Genero</dt>
-                    <dd>{{ patient.gender || 'Nao especificado' }}</dd>
+                    <dt>Género</dt>
+                    <dd>{{ patient.gender || 'Não especificado' }}</dd>
                     <dt>Telefone</dt>
-                    <dd>{{ patient.phoneNumber || 'Nao especificado' }}</dd>
+                    <dd>{{ patient.phoneNumber || 'Não especificado' }}</dd>
                     <dt>Email</dt>
-                    <dd>{{ patient.email || 'Nao especificado' }}</dd>
+                    <dd>{{ patient.email || 'Não especificado' }}</dd>
                     <dt>Cuidador</dt>
-                    <dd>{{ patient.caregiverName || 'Nao registado' }}</dd>
+                    <dd>{{ patient.caregiverName || 'Não registado' }}</dd>
                     <dt>Motivo</dt>
-                    <dd>{{ patient.referralReason || 'Nao especificado' }}</dd>
+                    <dd>{{ patient.referralReason || 'Não especificado' }}</dd>
                     <dt>Morada</dt>
-                    <dd>{{ patientAddress(patient) || 'Nao especificada' }}</dd>
+                    <dd>{{ patientAddress(patient) || 'Não especificada' }}</dd>
                   </dl>
                 </article>
 
@@ -327,7 +327,7 @@
                         <span>{{ goal.area }} - {{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
                         <div class="inline-actions">
                           <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>
-                          <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcancado</button>
+                          <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcançado</button>
                           <button type="button" (click)="updateGoalStatus(goal.id, 'Suspended')">Suspender</button>
                         </div>
                       </article>
@@ -337,7 +337,7 @@
 
                 <article class="panel">
                   <div class="panel-heading">
-                    <h2>Proximas sessoes</h2>
+                    <h2>Próximas sessões</h2>
                     <span>Plano do paciente</span>
                   </div>
                   <div class="stack">
@@ -365,7 +365,7 @@
         <section class="view content-grid">
           <article class="panel">
             <div class="panel-heading">
-              <h2>Agendar sessao</h2>
+              <h2>Agendar sessão</h2>
               <span>{{ selectedPatient()?.name || 'Paciente' }}</span>
             </div>
             <form class="form-grid compact" (submit)="$event.preventDefault(); createSession()">
@@ -389,7 +389,7 @@
                 Local
                 <input [value]="sessionForm().location" (input)="updateSession('location', $any($event.target).value)" />
               </label>
-              <button type="submit" class="primary-button">Agendar sessao</button>
+              <button type="submit" class="primary-button">Agendar sessão</button>
             </form>
 
             <div class="stack separated">
@@ -405,13 +405,13 @@
 
           <article class="panel">
             <div class="panel-heading">
-              <h2>Checkpoint da sessao</h2>
-              <span>Transforma a sessao em dados para relatorio</span>
+              <h2>Checkpoint da sessão</h2>
+              <span>Transforma a sessão em dados para relatório</span>
             </div>
             @if (selectedSession(); as session) {
               <form class="checkpoint-form" (submit)="$event.preventDefault(); completeSession(session.id)">
                 <label>
-                  Sumario clinico
+                  Sumário clínico
                   <textarea rows="3" [value]="checkpointForm().clinicalSummary" (input)="updateCheckpoint('clinicalSummary', $any($event.target).value)"></textarea>
                 </label>
                 <label>
@@ -435,19 +435,19 @@
                   <textarea rows="3" [value]="checkpointForm().difficulties" (input)="updateCheckpoint('difficulties', $any($event.target).value)"></textarea>
                 </label>
                 <label>
-                  Recomendacoes
+                  Recomendações
                   <textarea rows="3" [value]="checkpointForm().recommendations" (input)="updateCheckpoint('recommendations', $any($event.target).value)"></textarea>
                 </label>
                 <label>
-                  Proximos passos
+                  Próximos passos
                   <textarea rows="3" [value]="checkpointForm().nextSteps" (input)="updateCheckpoint('nextSteps', $any($event.target).value)"></textarea>
                 </label>
-                <button type="submit" class="primary-button">Concluir sessao</button>
+                <button type="submit" class="primary-button">Concluir sessão</button>
               </form>
             } @else {
               <article class="empty-state">
-                <strong>Sem sessao selecionada.</strong>
-                <span>Agenda ou seleciona uma sessao para registar o checkpoint.</span>
+                <strong>Sem sessão selecionada.</strong>
+                <span>Agenda ou seleciona uma sessão para registar o checkpoint.</span>
               </article>
             }
           </article>
@@ -485,8 +485,8 @@
 
           <article class="panel">
             <div class="panel-heading">
-              <h2>Historico de rascunhos</h2>
-              <span>{{ selectedPatientReports().length }} relatorios</span>
+              <h2>Histórico de rascunhos</h2>
+              <span>{{ selectedPatientReports().length }} relatórios</span>
             </div>
             <div class="stack">
               @for (report of selectedPatientReports(); track report.id) {

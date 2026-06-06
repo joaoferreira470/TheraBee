@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 type WorkspacePage = 'therapist' | 'patient' | 'session';
-type ActionModal = 'patient-create' | 'patient-edit' | 'preset' | 'session-schedule' | '';
+type ActionModal = 'patient-create' | 'patient-edit' | 'patient-delete' | 'preset' | 'session-schedule' | '';
 type NotificationKind = 'info' | 'warning' | 'error';
 
 type WorkspaceNotification = {
@@ -234,6 +234,8 @@ export class WorkspacePageComponent {
   readonly selectedSessionDetail = signal<Session | null>(null);
   readonly editingGoalId = signal('');
   readonly editingPatientId = signal('');
+  readonly patientDeleteTarget = signal<Patient | null>(null);
+  readonly showArchivedPatients = signal(false);
   readonly activeModal = signal<ActionModal>('');
 
   readonly patientForm = signal<PatientForm>({
@@ -336,7 +338,10 @@ export class WorkspacePageComponent {
     return `Sessão ${sessionNumber} | ${patient.name}, ${patient.calculatedAge} anos`;
   });
 
-  readonly activePatientCount = computed(() => this.patients().filter((patient) => patient.status !== 'Archived').length);
+  readonly activePatientCount = computed(() => this.patients().filter((patient) => this.isActivePatient(patient)).length);
+  readonly visiblePatients = computed(() => this.patients().filter((patient) =>
+    this.showArchivedPatients() ? !this.isActivePatient(patient) : this.isActivePatient(patient)));
+  readonly visiblePatientCount = computed(() => this.visiblePatients().length);
   readonly pendingSessionCount = computed(() => this.sessions().filter((session) => session.status === 'Scheduled' || session.status === 'Rescheduled').length);
   readonly completedSessionCount = computed(() => this.sessions().filter((session) => session.status === 'Completed').length);
   readonly achievedGoalCount = computed(() => this.selectedPatientGoals().filter((goal) => goal.status === 'Achieved').length);
@@ -444,6 +449,24 @@ export class WorkspacePageComponent {
     this.activeModal.set('');
   }
 
+  private isActivePatient(patient: Patient) {
+    return (patient.status ?? '').toLowerCase() === 'active';
+  }
+
+  toggleArchivedPatients(checked: boolean) {
+    this.showArchivedPatients.set(checked);
+  }
+
+  promptDeletePatient(patient: Patient) {
+    this.patientDeleteTarget.set(patient);
+    this.openActionModal('patient-delete');
+  }
+
+  cancelPatientDeletion() {
+    this.patientDeleteTarget.set(null);
+    this.closeActionModal();
+  }
+
   @HostListener('document:keydown.escape')
   onEscapeKey() {
     if (this.activeModal()) {
@@ -525,6 +548,16 @@ export class WorkspacePageComponent {
       await this.goTherapist();
       this.showNotification('Paciente arquivado.');
     }, 'Não foi possível arquivar paciente.');
+  }
+
+  async confirmPatientDeletion() {
+    const target = this.patientDeleteTarget();
+    if (!target) {
+      return;
+    }
+
+    this.cancelPatientDeletion();
+    await this.deletePatient(target.id);
   }
 
   async startEditingPatient(patient: Patient) {

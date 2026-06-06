@@ -85,7 +85,7 @@
           <details class="accordion-panel" open>
             <summary>
               <span>Pacientes</span>
-              <small>{{ patients().length }} registados</small>
+              <small>{{ visiblePatientCount() }} {{ showArchivedPatients() ? 'arquivados' : 'ativos' }}</small>
             </summary>
             <div class="accordion-body">
               <div class="inline-actions modal-launcher">
@@ -95,18 +95,53 @@
               <details class="accordion-panel nested-panel" open>
                 <summary>
                   <span>Lista de Pacientes</span>
-                  <small>Pacientes associados</small>
+                  <small>{{ visiblePatientCount() }} visíveis</small>
+                  <label class="switch-toggle" aria-label="Mostrar arquivados">
+                    <input
+                      type="checkbox"
+                      [checked]="showArchivedPatients()"
+                      (change)="toggleArchivedPatients($any($event.target).checked)"
+                    />
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                    <span class="switch-text">Mostrar arquivados</span>
+                  </label>
                 </summary>
                 <div class="accordion-body">
-                  <div class="stack">
-                    @for (patient of patients(); track patient.id) {
-                      <button type="button" class="list-row" (click)="goPatient(patient.id)">
-                        <strong>{{ patient.name }}</strong>
-                        <span>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</span>
-                        <small>{{ patient.status }}</small>
-                      </button>
-                    }
-                  </div>
+                  @if (visiblePatients().length) {
+                    <div class="stack">
+                      @for (patient of visiblePatients(); track patient.id) {
+                        <article
+                          class="list-row patient-row"
+                          role="button"
+                          tabindex="0"
+                          (click)="goPatient(patient.id)"
+                          (keydown.enter)="goPatient(patient.id)"
+                          (keydown.space)="$event.preventDefault(); goPatient(patient.id)"
+                        >
+                          <div class="patient-row-copy">
+                            <strong>{{ patient.name }}</strong>
+                            <span>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</span>
+                            <small>{{ patient.status }}</small>
+                          </div>
+                          <button
+                            type="button"
+                            class="icon-button danger-icon-button"
+                            aria-label="Eliminar paciente"
+                            (click)="promptDeletePatient(patient); $event.stopPropagation()"
+                          >
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                          </button>
+                        </article>
+                      }
+                    </div>
+                  } @else {
+                    <article class="empty-state inline-empty-state">
+                      <strong>{{ showArchivedPatients() ? 'Não há pacientes arquivados.' : 'Não há pacientes ativos.' }}</strong>
+                      <span>{{ showArchivedPatients() ? 'Ativa o switch para ver os pacientes ativos.' : 'Ativa o switch para ver os arquivados.' }}</span>
+                    </article>
+                  }
                 </div>
               </details>
             </div>
@@ -173,7 +208,6 @@
                 </dl>
                 <div class="inline-actions">
                   <button type="button" (click)="startEditingPatient(patient); openActionModal('patient-edit')">Alterar Dados</button>
-                  <button type="button" (click)="goTherapist()">Voltar ao hub</button>
                 </div>
               </div>
             </details>
@@ -236,7 +270,7 @@
 
             <details class="accordion-panel">
               <summary>
-                <span>Sessoes</span>
+                <span>Sessões</span>
                 <small>{{ selectedPatientSessions().length }} sessões</small>
               </summary>
               <div class="accordion-body">
@@ -558,6 +592,27 @@
           <span>Esta página precisa do contexto de paciente para abrir a sessão.</span>
         </article>
       }
+    }
+
+    @if (activeModal() === 'patient-delete' && patientDeleteTarget(); as patientToDelete) {
+      <div class="modal-backdrop" role="presentation">
+        <section class="modal-panel confirm-modal" role="dialog" aria-modal="true" aria-labelledby="patient-delete-title" (click)="$event.stopPropagation()">
+          <div class="modal-heading">
+            <div>
+              <h2 id="patient-delete-title">Eliminar paciente</h2>
+              <span>{{ patientToDelete.name }}</span>
+            </div>
+            <button type="button" class="icon-button" aria-label="Fechar" (click)="cancelPatientDeletion()">x</button>
+          </div>
+          <div class="modal-form confirm-body">
+            <p>Esta ação irá eliminar este paciente. Deseja prosseguir?</p>
+            <div class="modal-actions">
+              <button type="button" class="ghost-button" (click)="cancelPatientDeletion()">Não</button>
+              <button type="button" class="primary-button" (click)="confirmPatientDeletion()">Sim</button>
+            </div>
+          </div>
+        </section>
+      </div>
     }
 
     @if (activeModal() === 'patient-create') {
