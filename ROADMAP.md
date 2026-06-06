@@ -53,7 +53,7 @@ Areas and objectives are independent presets. An objective does not need to be a
 - [x] `Objective`: concrete therapeutic objective that can be evaluated over time.
 - [x] Areas and objectives can be created independently from sessions.
 - [x] Areas and objectives can be reused across multiple sessions.
-- [x] Areas and objectives have area/category text, priority, status, review date, and type.
+- [x] Areas and objectives have area/category text, priority, status, and type.
 - [x] Areas and objectives do not require a parent/child relationship.
 
 Recommended relationship:
@@ -170,13 +170,13 @@ The Angular application should become a routed product rather than a single oper
 
 - [x] Therapy goal domain exists.
 - [x] Goals can be created for a patient.
-- [x] Goals include area, priority, status, and review date.
+- [x] Goals include area, priority, status, and type.
 - [x] Goals can be associated with sessions.
 - [x] Goal progress can be summarized with current dashboard logic.
 - [x] Goals support `Area` and `Objective` types.
 - [x] Areas and objectives are independent presets.
-- [ ] Goal create/edit UI supports type selection.
-- [ ] Goal picker is filtered by session type.
+- [x] Goal create/edit UI supports type selection.
+- [x] Goal picker is filtered by session type.
 - [ ] Goal progress is based on 0-10 session assessments.
 
 ### Sessions

@@ -9,5 +9,4 @@ public record TherapeuticGoalDto(
     string Area,
     TherapeuticGoalPriority Priority,
     TherapeuticGoalStatus Status,
-    DateTime? ReviewDate,
     DateTime? CreatedAt);

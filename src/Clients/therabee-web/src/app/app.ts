@@ -45,7 +45,6 @@ type TherapeuticGoal = {
   area: string;
   priority: string;
   status: string;
-  reviewDate?: string | null;
 };
 
 type Session = {
@@ -142,7 +141,6 @@ type GoalForm = {
   description: string;
   area: string;
   priority: string;
-  reviewDate: string;
 };
 
 type SessionForm = {
@@ -225,7 +223,6 @@ export class App {
     description: 'Melhorar coordenacao motora fina',
     area: 'Motricidade fina',
     priority: 'Medium',
-    reviewDate: '2026-07-01',
   });
 
   readonly sessionForm = signal<SessionForm>({
@@ -416,7 +413,6 @@ export class App {
           description: form.description,
           area: form.area,
           priority: form.priority,
-          reviewDate: form.reviewDate ? this.toIsoDate(form.reviewDate) : null,
         },
       }, { headers: this.authHeaders() }));
 

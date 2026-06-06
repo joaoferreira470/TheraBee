@@ -38,7 +38,7 @@ export class AuthPageComponent {
 
   readonly authMode = computed<AuthMode>(() => (this.routeData()?.['authMode'] as AuthMode) ?? 'login');
   readonly isBusy = signal(false);
-  readonly apiMessage = signal('Prepara a tua sessao para aceder ao workspace.');
+  readonly apiMessage = signal('Prepara a tua sessão para aceder ao workspace.');
 
   readonly authForm = signal<AuthForm>({
     name: 'Joana Terapeuta',
@@ -67,11 +67,11 @@ export class AuthPageComponent {
 
       localStorage.setItem(TOKEN_KEY, response.auth.accessToken);
       localStorage.setItem(USER_KEY, JSON.stringify(response.auth.user));
-      this.apiMessage.set(`Sessao iniciada como ${response.auth.user.name}.`);
+      this.apiMessage.set(`Sessão iniciada como ${response.auth.user.name}.`);
       await this.router.navigate(['/therapist']);
     } catch (error) {
       console.error(error);
-      this.apiMessage.set('Nao foi possivel autenticar. Confirma se a API esta a correr.');
+      this.apiMessage.set('Não foi possível autenticar. Confirma se a API está a correr.');
     } finally {
       this.isBusy.set(false);
     }

@@ -4,5 +4,4 @@ public record CreateTherapeuticGoalDto(
     TherapeuticGoalType Type,
     string Description,
     string Area,
-    TherapeuticGoalPriority Priority,
-    DateTime? ReviewDate);
+    TherapeuticGoalPriority Priority);

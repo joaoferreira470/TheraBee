@@ -9,7 +9,6 @@ public class TherapeuticGoal : Entity<Guid>
     public TherapeuticGoalType Type { get; set; } = TherapeuticGoalType.Objective;
     public TherapeuticGoalPriority Priority { get; set; } = TherapeuticGoalPriority.Medium;
     public TherapeuticGoalStatus Status { get; set; } = TherapeuticGoalStatus.NotStarted;
-    public DateTime? ReviewDate { get; set; }
 
     public static TherapeuticGoal Create(
         Guid id,
@@ -18,8 +17,7 @@ public class TherapeuticGoal : Entity<Guid>
         TherapeuticGoalType type,
         string description,
         string area,
-        TherapeuticGoalPriority priority,
-        DateTime? reviewDate)
+        TherapeuticGoalPriority priority)
     {
         return new TherapeuticGoal
         {
@@ -30,8 +28,7 @@ public class TherapeuticGoal : Entity<Guid>
             Area = area,
             Type = type,
             Priority = priority,
-            Status = TherapeuticGoalStatus.NotStarted,
-            ReviewDate = reviewDate
+            Status = TherapeuticGoalStatus.NotStarted
         };
     }
 
@@ -39,14 +36,12 @@ public class TherapeuticGoal : Entity<Guid>
         TherapeuticGoalType type,
         string description,
         string area,
-        TherapeuticGoalPriority priority,
-        DateTime? reviewDate)
+        TherapeuticGoalPriority priority)
     {
         Type = type;
         Description = description;
         Area = area;
         Priority = priority;
-        ReviewDate = reviewDate;
     }
 
     public void UpdateStatus(TherapeuticGoalStatus status)

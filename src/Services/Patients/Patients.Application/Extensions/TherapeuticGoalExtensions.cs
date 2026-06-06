@@ -13,7 +13,6 @@ public static class TherapeuticGoalExtensions
             Area: goal.Area,
             Priority: goal.Priority,
             Status: goal.Status,
-            ReviewDate: goal.ReviewDate,
             CreatedAt: goal.CreatedAt);
     }
 

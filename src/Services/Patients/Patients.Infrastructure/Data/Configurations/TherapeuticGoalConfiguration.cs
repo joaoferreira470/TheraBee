@@ -33,8 +33,6 @@ public class TherapeuticGoalConfiguration : IEntityTypeConfiguration<Therapeutic
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(goal => goal.ReviewDate);
-
         builder.Property(goal => goal.PatientId)
             .IsRequired();
 

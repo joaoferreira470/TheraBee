@@ -26,8 +26,7 @@ public class CreateTherapeuticGoalHandler(IApplicationDbContext dbContext, ICurr
             type: command.Goal.Type,
             description: command.Goal.Description.Trim(),
             area: command.Goal.Area.Trim(),
-            priority: command.Goal.Priority,
-            reviewDate: command.Goal.ReviewDate);
+            priority: command.Goal.Priority);
 
         dbContext.TherapeuticGoals.Add(goal);
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -310,10 +310,6 @@
                       <input [value]="goalForm().description" (input)="updateGoal('description', $any($event.target).value)" />
                     </label>
                     <label>
-                      Area
-                      <input [value]="goalForm().area" (input)="updateGoal('area', $any($event.target).value)" />
-                    </label>
-                    <label>
                       Prioridade
                       <select [value]="goalForm().priority" (change)="updateGoal('priority', $any($event.target).value)">
                         <option value="Low">Baixa</option>
@@ -321,11 +317,7 @@
                         <option value="High">Alta</option>
                       </select>
                     </label>
-                    <label>
-                      Revisao
-                      <input type="date" [value]="goalForm().reviewDate" (input)="updateGoal('reviewDate', $any($event.target).value)" />
-                    </label>
-                    <button type="submit" class="primary-button">Criar objetivo</button>
+                    <button type="submit" class="primary-button">Criar</button>
                   </form>
 
                   <div class="stack separated">
@@ -333,7 +325,6 @@
                       <article class="list-card">
                         <strong>{{ goal.description }}</strong>
                         <span>{{ goal.area }} - {{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
-                        <small>Revisao: {{ formatDate(goal.reviewDate) }}</small>
                         <div class="inline-actions">
                           <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>
                           <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcancado</button>

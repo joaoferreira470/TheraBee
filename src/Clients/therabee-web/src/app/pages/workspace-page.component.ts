@@ -1,10 +1,17 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 type WorkspacePage = 'therapist' | 'patient' | 'session';
+type ActionModal = 'patient-create' | 'patient-edit' | 'preset' | 'session-schedule' | '';
+type NotificationKind = 'info' | 'warning' | 'error';
+
+type WorkspaceNotification = {
+  message: string;
+  kind: NotificationKind;
+};
 
 type AuthUser = {
   id: string;
@@ -46,7 +53,6 @@ type TherapeuticGoal = {
   area: string;
   priority: string;
   status: string;
-  reviewDate?: string | null;
 };
 
 type Session = {
@@ -166,7 +172,6 @@ type GoalForm = {
   description: string;
   area: string;
   priority: string;
-  reviewDate: string;
 };
 
 type SessionForm = {
@@ -209,11 +214,12 @@ export class WorkspacePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly routeData = toSignal(this.route.data, { initialValue: this.route.snapshot.data });
   private readonly routeParams = toSignal(this.route.paramMap, { initialValue: this.route.snapshot.paramMap });
+  private notificationTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly currentPage = computed<WorkspacePage>(() => (this.routeData()?.['page'] as WorkspacePage) ?? 'therapist');
   readonly token = signal(this.readStoredToken());
   readonly user = signal<AuthUser | null>(this.readStoredUser());
-  readonly apiMessage = signal('Workspace pronto para sincronizar.');
+  readonly notification = signal<WorkspaceNotification | null>(null);
   readonly isBusy = signal(false);
 
   readonly patients = signal<Patient[]>([]);
@@ -228,18 +234,19 @@ export class WorkspacePageComponent {
   readonly selectedSessionDetail = signal<Session | null>(null);
   readonly editingGoalId = signal('');
   readonly editingPatientId = signal('');
+  readonly activeModal = signal<ActionModal>('');
 
   readonly patientForm = signal<PatientForm>({
     name: 'Maria Silva',
     dateOfBirth: '1990-05-20',
-    mainDiagnosis: 'Intervencao psicomotora',
+    mainDiagnosis: 'Intervenção psicomotora',
     gender: 'Feminino',
     phoneNumber: '910000000',
     email: 'maria@example.com',
     caregiverName: 'Ana Silva',
     caregiverPhone: '920000000',
     referralReason: 'Acompanhamento de progresso funcional',
-    generalNotes: 'Paciente acompanhada em contexto clinico.',
+    generalNotes: 'Paciente acompanhada em contexto clínico.',
     addressLine: 'Rua das Flores 10',
     district: 'Lisboa',
     location: 'Lisboa',
@@ -266,10 +273,9 @@ export class WorkspacePageComponent {
 
   readonly goalForm = signal<GoalForm>({
     type: 'Objective',
-    description: 'Melhorar coordenacao motora fina',
+    description: 'Melhorar coordenação motora fina',
     area: 'Motricidade fina',
     priority: 'Medium',
-    reviewDate: '2026-07-01',
   });
 
   readonly sessionForm = signal<SessionForm>({
@@ -281,35 +287,33 @@ export class WorkspacePageComponent {
   });
 
   readonly checkpointForm = signal<CheckpointForm>({
-    clinicalSummary: 'Sessao focada em regulacao tonica e organizacao motora.',
-    objectivesWorked: 'Coordenacao bilateral; planeamento motor; atencao sustentada.',
+    clinicalSummary: 'Sessão focada em regulação tónica e organização motora.',
+    objectivesWorked: 'Coordenação bilateral; planeamento motor; atenção sustentada.',
     progressRating: 'Bom progresso',
     activities: 'Circuito motor, encaixes finos e sequencia de tarefas.',
-    patientResponse: 'Boa adesao, com maior autonomia no final da sessao.',
-    difficulties: 'Oscilacao atencional em tarefas longas.',
-    recommendations: 'Manter rotina de exercicios curtos em casa.',
+    patientResponse: 'Boa adesão, com maior autonomia no final da sessão.',
+    difficulties: 'Oscilação atencional em tarefas longas.',
+    recommendations: 'Manter rotina de exercícios curtos em casa.',
     nextSteps: 'Rever objetivos e aumentar complexidade gradualmente.',
   });
   readonly assessmentForm = signal<Record<string, GoalAssessmentFormEntry>>({});
 
   readonly selectedPatient = computed(() => this.selectedPatientDetail() ?? this.patients().find((patient) => patient.id === this.selectedPatientId()) ?? null);
   readonly selectedSession = computed(() => this.selectedSessionDetail() ?? this.sessions().find((session) => session.id === this.selectedSessionId()) ?? null);
-  readonly selectedPatientGoals = computed(() => this.goals().filter((goal) => goal.patientId === this.selectedPatientId()));
+  readonly activePatientId = computed(() => this.selectedPatient()?.id ?? this.selectedPatientId());
+  readonly selectedPatientGoals = computed(() => this.goals().filter((goal) => goal.patientId === this.activePatientId()));
   readonly selectedPatientAreas = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'Area'));
   readonly selectedPatientObjectives = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'Objective'));
   readonly availableSessionGoals = computed(() => this.sessionForm().type === 'Intervention'
     ? this.selectedPatientObjectives()
     : this.selectedPatientAreas());
-  readonly selectedPatientSessions = computed(() => this.sessions().filter((session) => session.patientId === this.selectedPatientId()).sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
-  readonly selectedPatientReports = computed(() => this.reports().filter((report) => report.patientId === this.selectedPatientId()).sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
+  readonly selectedPatientSessions = computed(() => this.sessions().filter((session) => session.patientId === this.activePatientId()).sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
+  readonly selectedPatientReports = computed(() => this.reports().filter((report) => report.patientId === this.activePatientId()).sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
   readonly selectedPatientGoalAssessments = computed(() => this.patientGoalAssessments().slice().sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
   readonly allSessions = computed(() => this.sessions().slice().sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()));
   readonly upcomingSessions = computed(() => this.allSessions().filter((session) => session.status === 'Scheduled' || session.status === 'Rescheduled'));
   readonly therapistName = computed(() => this.user()?.name || 'Terapeuta');
-  readonly currentPatientLabel = computed(() => {
-    const patient = this.selectedPatient();
-    return patient ? `Paciente ${patient.name}` : 'Paciente';
-  });
+  readonly patientNameById = (patientId: string) => this.patients().find((patient) => patient.id === patientId)?.name ?? 'Paciente';
   readonly selectedSessionGoals = computed(() => {
     const patientGoals = new Map(this.selectedPatientGoals().map((goal) => [goal.id, goal]));
     const goalIds = this.sessionForm().goalIds ?? [];
@@ -325,11 +329,11 @@ export class WorkspacePageComponent {
     const patient = this.selectedPatient();
     const session = this.selectedSession();
     if (!patient || !session) {
-      return 'Sessao';
+      return 'Sessão';
     }
 
     const sessionNumber = Math.max(this.selectedPatientSessions().findIndex((item) => item.id === session.id) + 1, 1);
-    return `Sessao ${sessionNumber} | ${patient.name}, ${patient.calculatedAge} anos`;
+    return `Sessão ${sessionNumber} | ${patient.name}, ${patient.calculatedAge} anos`;
   });
 
   readonly activePatientCount = computed(() => this.patients().filter((patient) => patient.status !== 'Archived').length);
@@ -390,7 +394,6 @@ export class WorkspacePageComponent {
     this.selectedSessionDetail.set(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    this.apiMessage.set('Sessao terminada localmente.');
     await this.router.navigate(['/login']);
   }
 
@@ -433,6 +436,21 @@ export class WorkspacePageComponent {
     }));
   }
 
+  openActionModal(modal: ActionModal) {
+    this.activeModal.set(modal);
+  }
+
+  closeActionModal() {
+    this.activeModal.set('');
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    if (this.activeModal()) {
+      this.closeActionModal();
+    }
+  }
+
   async createPatient() {
     const form = this.patientForm();
     await this.runApi(async () => {
@@ -459,8 +477,9 @@ export class WorkspacePageComponent {
 
       await this.loadWorkspace();
       await this.goPatient(response.id);
-      this.apiMessage.set('Paciente criado e aberto na ficha.');
-    }, 'Nao foi possivel criar paciente.');
+      this.closeActionModal();
+      this.showNotification('Paciente criado e aberto na ficha.');
+    }, 'Não foi possível criar paciente.');
   }
 
   async savePatientEdit() {
@@ -494,8 +513,9 @@ export class WorkspacePageComponent {
 
       await this.loadWorkspace();
       await this.loadPatientContext(form.id);
-      this.apiMessage.set('Paciente atualizado.');
-    }, 'Nao foi possivel atualizar paciente.');
+      this.closeActionModal();
+      this.showNotification('Paciente atualizado.');
+    }, 'Não foi possível atualizar paciente.');
   }
 
   async deletePatient(patientId: string) {
@@ -503,8 +523,8 @@ export class WorkspacePageComponent {
       await firstValueFrom(this.http.delete(`${API_BASE_URL}/patients/${patientId}`, { headers: this.authHeaders() }));
       await this.loadWorkspace();
       await this.goTherapist();
-      this.apiMessage.set('Paciente arquivado.');
-    }, 'Nao foi possivel arquivar paciente.');
+      this.showNotification('Paciente arquivado.');
+    }, 'Não foi possível arquivar paciente.');
   }
 
   async startEditingPatient(patient: Patient) {
@@ -537,6 +557,8 @@ export class WorkspacePageComponent {
     }
 
     await this.runApi(async () => {
+      let goalId = editingGoalId;
+
       if (editingGoalId) {
         await firstValueFrom(this.http.put(`${API_BASE_URL}/therapy-goals/${editingGoalId}`, {
           goal: {
@@ -544,25 +566,39 @@ export class WorkspacePageComponent {
             description: form.description,
             area: form.area,
             priority: form.priority,
-            reviewDate: form.reviewDate ? this.toIsoDate(form.reviewDate) : null,
           },
         }, { headers: this.authHeaders() }));
       } else {
-        await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, {
+        const response = await firstValueFrom(this.http.post<{ id: string }>(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, {
           goal: {
             type: form.type,
             description: form.description,
             area: form.area,
             priority: form.priority,
-            reviewDate: form.reviewDate ? this.toIsoDate(form.reviewDate) : null,
           },
         }, { headers: this.authHeaders() }));
+
+        goalId = response.id;
       }
 
+      this.upsertGoalInState({
+        id: goalId || editingGoalId || '',
+        patientId,
+        type: form.type as TherapeuticGoal['type'],
+        description: form.description,
+        area: form.area,
+        priority: form.priority as TherapeuticGoal['priority'],
+        status: editingGoalId
+          ? this.goals().find((goal) => goal.id === editingGoalId)?.status ?? 'NotStarted'
+          : 'NotStarted',
+      });
+
+      await this.refreshPatientGoals(patientId);
       await this.loadPatientContext(patientId, this.selectedSessionId());
       this.editingGoalId.set('');
-      this.apiMessage.set(editingGoalId ? 'Objetivo atualizado.' : 'Objetivo criado.');
-    }, 'Nao foi possivel guardar objetivo.');
+      this.closeActionModal();
+      this.showNotification(editingGoalId ? 'Objetivo atualizado.' : 'Objetivo criado.');
+    }, 'Não foi possível guardar objetivo.');
   }
 
   async editGoal(goal: TherapeuticGoal) {
@@ -572,18 +608,17 @@ export class WorkspacePageComponent {
       description: goal.description,
       area: goal.area,
       priority: goal.priority,
-      reviewDate: goal.reviewDate ? goal.reviewDate.slice(0, 10) : '',
     });
+    this.openActionModal('preset');
   }
 
   cancelGoalEditing() {
     this.editingGoalId.set('');
     this.goalForm.set({
       type: 'Objective',
-      description: 'Melhorar coordenacao motora fina',
+      description: 'Melhorar coordenação motora fina',
       area: 'Motricidade fina',
       priority: 'Medium',
-      reviewDate: '2026-07-01',
     });
   }
 
@@ -595,9 +630,10 @@ export class WorkspacePageComponent {
 
     await this.runApi(async () => {
       await firstValueFrom(this.http.patch(`${API_BASE_URL}/therapy-goals/${goalId}/status`, { status }, { headers: this.authHeaders() }));
+      await this.refreshPatientGoals(patientId);
       await this.loadPatientContext(patientId, this.selectedSessionId());
-      this.apiMessage.set('Estado do objetivo atualizado.');
-    }, 'Nao foi possivel atualizar o estado do objetivo.');
+      this.showNotification('Estado do objetivo atualizado.');
+    }, 'Não foi possível atualizar o estado do objetivo.');
   }
 
   async createSession() {
@@ -620,8 +656,9 @@ export class WorkspacePageComponent {
 
       await this.loadWorkspace();
       await this.goSession(patientId, response.id);
-      this.apiMessage.set('Sessao agendada.');
-    }, 'Nao foi possivel agendar sessao.');
+      this.closeActionModal();
+      this.showNotification('Sessão agendada.');
+    }, 'Não foi possível agendar sessão.');
   }
 
   async saveSessionChanges() {
@@ -648,8 +685,8 @@ export class WorkspacePageComponent {
       }, { headers: this.authHeaders() }));
 
       await this.loadPatientContext(session.patientId, session.id);
-      this.apiMessage.set('Sessao atualizada.');
-    }, 'Nao foi possivel atualizar a sessao.');
+      this.showNotification('Sessão atualizada.');
+    }, 'Não foi possível atualizar a sessão.');
   }
 
   async cancelSession() {
@@ -664,8 +701,8 @@ export class WorkspacePageComponent {
       }, { headers: this.authHeaders() }));
 
       await this.loadPatientContext(session.patientId, session.id);
-      this.apiMessage.set('Sessao cancelada.');
-    }, 'Nao foi possivel cancelar a sessao.');
+      this.showNotification('Sessão cancelada.', 'warning');
+    }, 'Não foi possível cancelar a sessão.');
   }
 
   async completeSession(sessionId: string) {
@@ -678,8 +715,8 @@ export class WorkspacePageComponent {
     await this.runApi(async () => {
       await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${sessionId}/complete`, { session: form }, { headers: this.authHeaders() }));
       await this.loadPatientContext(patientId, sessionId);
-      this.apiMessage.set('Checkpoint registado e sessao concluida.');
-    }, 'Nao foi possivel concluir a sessao.');
+      this.showNotification('Avaliação registada e sessão concluída.');
+    }, 'Não foi possível concluir a sessão.');
   }
 
   async confirmSession() {
@@ -706,8 +743,8 @@ export class WorkspacePageComponent {
       await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/complete`, { session: this.checkpointForm() }, { headers: this.authHeaders() }));
 
       await this.loadPatientContext(session.patientId, session.id);
-      this.apiMessage.set('Avaliacoes submetidas e sessao confirmada.');
-    }, 'Nao foi possivel confirmar a sessao.');
+      this.showNotification('Avaliações submetidas e sessão confirmada.');
+    }, 'Não foi possível confirmar a sessão.');
   }
 
   async createReportDraft() {
@@ -719,8 +756,8 @@ export class WorkspacePageComponent {
     await this.runApi(async () => {
       await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/reports/draft`, {}, { headers: this.authHeaders() }));
       await this.loadPatientContext(patientId, this.selectedSessionId());
-      this.apiMessage.set('Draft de relatorio gerado.');
-    }, 'Nao foi possivel gerar o draft de relatorio.');
+      this.showNotification('Rascunho de relatório gerado.');
+    }, 'Não foi possível gerar o rascunho de relatório.');
   }
 
   async exportReport(reportId: string, format: 'pdf' | 'word') {
@@ -743,8 +780,8 @@ export class WorkspacePageComponent {
       anchor.download = fileName;
       anchor.click();
       URL.revokeObjectURL(url);
-      this.apiMessage.set(`Relatorio exportado em ${format.toUpperCase()}.`);
-    }, `Nao foi possivel exportar em ${format.toUpperCase()}.`);
+      this.showNotification(`Relatório exportado em ${format.toUpperCase()}.`);
+    }, `Não foi possível exportar em ${format.toUpperCase()}.`);
   }
 
   async discardReport(reportId: string) {
@@ -756,8 +793,8 @@ export class WorkspacePageComponent {
     await this.runApi(async () => {
       await firstValueFrom(this.http.delete(`${API_BASE_URL}/reports/${reportId}`, { headers: this.authHeaders() }));
       await this.loadPatientContext(patientId, this.selectedSessionId());
-      this.apiMessage.set('Rascunho de relatorio descartado.');
-    }, 'Nao foi possivel descartar o rascunho.');
+      this.showNotification('Rascunho de relatório descartado.', 'warning');
+    }, 'Não foi possível descartar o rascunho.');
   }
 
   async loadWorkspace() {
@@ -769,8 +806,7 @@ export class WorkspacePageComponent {
 
       this.patients.set(patientsResponse.patients);
       this.sessions.set(sessionsResponse.sessions);
-      this.apiMessage.set('Workspace sincronizado com a API.');
-    }, 'Nao consegui carregar o workspace. Confirma a API, Docker e a base de dados.');
+    }, 'Não consegui carregar o workspace. Confirma a API, o Docker e a base de dados.');
   }
 
   async loadPatientContext(patientId: string, sessionId?: string | null) {
@@ -780,8 +816,8 @@ export class WorkspacePageComponent {
 
     await this.runApi(async () => {
       const headers = this.authHeaders();
-      const [patientResponse, sessionsResponse, goalsResponse, reportsResponse, assessmentsResponse, dashboardResponse] = await Promise.all([
-        firstValueFrom(this.http.get<{ patient: Patient }>(`${API_BASE_URL}/patients/id/${patientId}`, { headers })),
+      const patientResponse = await firstValueFrom(this.http.get<{ patient: Patient }>(`${API_BASE_URL}/patients/id/${patientId}`, { headers }));
+      const [sessionsResponse, goalsResponse, reportsResponse, assessmentsResponse, dashboardResponse] = await Promise.allSettled([
         firstValueFrom(this.http.get<{ sessions: Session[] }>(`${API_BASE_URL}/patients/${patientId}/sessions`, { headers })),
         firstValueFrom(this.http.get<{ therapeuticGoals: TherapeuticGoal[] }>(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, { headers })),
         firstValueFrom(this.http.get<{ reports: Report[] }>(`${API_BASE_URL}/patients/${patientId}/reports`, { headers })),
@@ -792,21 +828,22 @@ export class WorkspacePageComponent {
       this.selectedPatientDetail.set(patientResponse.patient);
       this.sessions.update((sessions) => [
         ...sessions.filter((session) => session.patientId !== patientId),
-        ...sessionsResponse.sessions,
+        ...(sessionsResponse.status === 'fulfilled' ? sessionsResponse.value.sessions : []),
       ]);
       this.goals.update((goals) => [
         ...goals.filter((goal) => goal.patientId !== patientId),
-        ...goalsResponse.therapeuticGoals,
+        ...(goalsResponse.status === 'fulfilled' ? goalsResponse.value.therapeuticGoals : []),
       ]);
       this.reports.update((reports) => [
         ...reports.filter((report) => report.patientId !== patientId),
-        ...reportsResponse.reports,
+        ...(reportsResponse.status === 'fulfilled' ? reportsResponse.value.reports : []),
       ]);
-      this.patientGoalAssessments.set(assessmentsResponse.assessments);
-      this.dashboard.set(dashboardResponse.dashboard);
+      this.patientGoalAssessments.set(assessmentsResponse.status === 'fulfilled' ? assessmentsResponse.value.assessments : []);
+      this.dashboard.set(dashboardResponse.status === 'fulfilled' ? dashboardResponse.value.dashboard : null);
 
-      const nextSessionId = sessionId || sessionsResponse.sessions[0]?.id || '';
-      this.selectedSessionDetail.set(nextSessionId ? sessionsResponse.sessions.find((item) => item.id === nextSessionId) ?? null : null);
+      const sessionItems = sessionsResponse.status === 'fulfilled' ? sessionsResponse.value.sessions : [];
+      const nextSessionId = sessionId || sessionItems[0]?.id || '';
+      this.selectedSessionDetail.set(nextSessionId ? sessionItems.find((item) => item.id === nextSessionId) ?? null : null);
 
       if (this.selectedPatientDetail()) {
         this.patientEditForm.set({
@@ -829,17 +866,19 @@ export class WorkspacePageComponent {
       }
 
       if (sessionId) {
-        const sessionResponse = await firstValueFrom(this.http.get<{ session: Session }>(`${API_BASE_URL}/sessions/${sessionId}`, { headers }));
-        this.selectedSessionDetail.set(sessionResponse.session);
+        const sessionResponse = await firstValueFrom(this.http.get<{ session: Session }>(`${API_BASE_URL}/sessions/${sessionId}`, { headers })).catch(() => null);
+        if (sessionResponse) {
+          this.selectedSessionDetail.set(sessionResponse.session);
+        }
         this.sessionForm.set({
-          startDateTime: this.toLocalDateTime(sessionResponse.session.startDateTime),
-          endDateTime: this.toLocalDateTime(sessionResponse.session.endDateTime),
-          type: sessionResponse.session.type,
-          location: sessionResponse.session.location,
-          goalIds: sessionResponse.session.goalIds ?? [],
+          startDateTime: sessionResponse ? this.toLocalDateTime(sessionResponse.session.startDateTime) : '2026-06-08T10:00',
+          endDateTime: sessionResponse ? this.toLocalDateTime(sessionResponse.session.endDateTime) : '2026-06-08T11:00',
+          type: sessionResponse ? sessionResponse.session.type : 'Intervention',
+          location: sessionResponse ? sessionResponse.session.location : 'Gabinete 1',
+          goalIds: sessionResponse ? sessionResponse.session.goalIds ?? [] : [],
         });
-        this.assessmentForm.set(this.buildAssessmentForm(sessionResponse.session));
-        this.checkpointForm.set({
+        this.assessmentForm.set(sessionResponse ? this.buildAssessmentForm(sessionResponse.session) : {});
+        this.checkpointForm.set(sessionResponse ? {
           clinicalSummary: sessionResponse.session.clinicalSummary ?? '',
           objectivesWorked: sessionResponse.session.objectivesWorked ?? '',
           progressRating: sessionResponse.session.progressRating ?? '',
@@ -848,6 +887,15 @@ export class WorkspacePageComponent {
           difficulties: sessionResponse.session.difficulties ?? '',
           recommendations: sessionResponse.session.recommendations ?? '',
           nextSteps: sessionResponse.session.nextSteps ?? '',
+        } : {
+          clinicalSummary: '',
+          objectivesWorked: '',
+          progressRating: '',
+          activities: '',
+          patientResponse: '',
+          difficulties: '',
+          recommendations: '',
+          nextSteps: '',
         });
       } else {
         this.sessionForm.set({
@@ -859,7 +907,33 @@ export class WorkspacePageComponent {
         });
         this.assessmentForm.set({});
       }
-    }, 'Nao foi possivel carregar o contexto do paciente.');
+    }, 'Não consegui carregar a ficha completa do paciente. Confirma se o paciente ainda existe, se a sessão está válida e se a API está a responder.');
+  }
+
+  private async refreshPatientGoals(patientId: string) {
+    const response = await firstValueFrom(this.http.get<{ therapeuticGoals: TherapeuticGoal[] }>(
+      `${API_BASE_URL}/patients/${patientId}/therapy-goals`,
+      { headers: this.authHeaders() },
+    ));
+
+    this.goals.update((goals) => this.mergeTherapeuticGoals(goals, response.therapeuticGoals, patientId));
+  }
+
+  private upsertGoalInState(goal: TherapeuticGoal) {
+    if (!goal.id) {
+      return;
+    }
+
+    this.goals.update((goals) => this.mergeTherapeuticGoals(goals, [goal], goal.patientId));
+  }
+
+  private mergeTherapeuticGoals(existingGoals: TherapeuticGoal[], refreshedGoals: TherapeuticGoal[], patientId: string) {
+    const refreshedById = new Map(refreshedGoals.map((goal) => [goal.id, goal]));
+
+    return [
+      ...existingGoals.filter((goal) => goal.patientId !== patientId || refreshedById.has(goal.id)),
+      ...refreshedGoals,
+    ].filter((goal, index, goals) => goals.findIndex((item) => item.id === goal.id) === index);
   }
 
   formatDate(value?: string | null) {
@@ -880,9 +954,9 @@ export class WorkspacePageComponent {
 
   goalStatusLabel(status: string) {
     return {
-      NotStarted: 'Nao iniciado',
+      NotStarted: 'Não iniciado',
       InProgress: 'Em progresso',
-      Achieved: 'Alcancado',
+      Achieved: 'Alcançado',
       Suspended: 'Suspenso',
     }[status] ?? status;
   }
@@ -890,14 +964,14 @@ export class WorkspacePageComponent {
   goalPriorityLabel(priority: string) {
     return {
       Low: 'Baixa',
-      Medium: 'Media',
+      Medium: 'Média',
       High: 'Alta',
     }[priority] ?? priority;
   }
 
   goalTypeLabel(type: string) {
     return {
-      Area: 'Area',
+      Area: 'Área',
       Objective: 'Objetivo',
     }[type] ?? type;
   }
@@ -909,7 +983,7 @@ export class WorkspacePageComponent {
   sessionGoalContextLabel() {
     return this.sessionForm().type === 'Intervention'
       ? 'Objetivos'
-      : 'Areas';
+      : 'Áreas';
   }
 
   isSessionGoalSelected(goalId: string) {
@@ -954,7 +1028,7 @@ export class WorkspacePageComponent {
     return {
       Scheduled: 'Agendada',
       Rescheduled: 'Reagendada',
-      Completed: 'Concluida',
+      Completed: 'Concluída',
       Cancelled: 'Cancelada',
       NoShow: 'Falta',
     }[status] ?? status;
@@ -962,9 +1036,9 @@ export class WorkspacePageComponent {
 
   sessionTypeLabel(type: string) {
     return {
-      Assessment: 'Avaliacao',
+      Assessment: 'Avaliação',
       Intervention: 'Terapia',
-      Reassessment: 'Reavaliacao',
+      Reassessment: 'Reavaliação',
     }[type] ?? type;
   }
 
@@ -987,10 +1061,31 @@ export class WorkspacePageComponent {
       await action();
     } catch (error) {
       console.error(error);
-      this.apiMessage.set(failureMessage);
+      this.showNotification(failureMessage, 'error');
     } finally {
       this.isBusy.set(false);
     }
+  }
+
+  dismissNotification() {
+    if (this.notificationTimeout) {
+      clearTimeout(this.notificationTimeout);
+      this.notificationTimeout = null;
+    }
+
+    this.notification.set(null);
+  }
+
+  private showNotification(message: string, kind: NotificationKind = 'info') {
+    if (this.notificationTimeout) {
+      clearTimeout(this.notificationTimeout);
+    }
+
+    this.notification.set({ message, kind });
+    this.notificationTimeout = setTimeout(() => {
+      this.notification.set(null);
+      this.notificationTimeout = null;
+    }, kind === 'error' ? 8000 : 4500);
   }
 
   private readStoredToken() {
