@@ -18,8 +18,47 @@ public class DeletePatientHandler(IApplicationDbContext dbContext, ICurrentUserS
             throw new PatientNotFoundException(command.PatientId);
         }
 
-        patient.UpdateStatus(PatientStatus.Inactive);
-        dbContext.Patients.Update(patient);
+        var sessionIds = await dbContext.Sessions
+            .Where(session => session.PatientId == command.PatientId && session.TherapistId == currentUserId)
+            .Select(session => session.Id)
+            .ToListAsync(cancellationToken);
+
+        var goalIds = await dbContext.TherapeuticGoals
+            .Where(goal => goal.PatientId == command.PatientId && goal.TherapistId == currentUserId)
+            .Select(goal => goal.Id)
+            .ToListAsync(cancellationToken);
+
+        var assessments = await dbContext.SessionGoalAssessments
+            .Where(assessment =>
+                assessment.TherapistId == currentUserId &&
+                (sessionIds.Contains(assessment.SessionId) || goalIds.Contains(assessment.TherapeuticGoalId)))
+            .ToListAsync(cancellationToken);
+
+        var sessionGoals = await dbContext.SessionGoals
+            .Where(sessionGoal =>
+                sessionGoal.TherapistId == currentUserId &&
+                (sessionIds.Contains(sessionGoal.SessionId) || goalIds.Contains(sessionGoal.TherapeuticGoalId)))
+            .ToListAsync(cancellationToken);
+
+        var reports = await dbContext.Reports
+            .Where(report => report.PatientId == command.PatientId && report.TherapistId == currentUserId)
+            .ToListAsync(cancellationToken);
+
+        var sessions = await dbContext.Sessions
+            .Where(session => sessionIds.Contains(session.Id))
+            .ToListAsync(cancellationToken);
+
+        var goals = await dbContext.TherapeuticGoals
+            .Where(goal => goalIds.Contains(goal.Id))
+            .ToListAsync(cancellationToken);
+
+        dbContext.SessionGoalAssessments.RemoveRange(assessments);
+        dbContext.SessionGoals.RemoveRange(sessionGoals);
+        dbContext.Reports.RemoveRange(reports);
+        dbContext.Sessions.RemoveRange(sessions);
+        dbContext.TherapeuticGoals.RemoveRange(goals);
+        dbContext.Patients.Remove(patient);
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new DeletePatientResult(true);

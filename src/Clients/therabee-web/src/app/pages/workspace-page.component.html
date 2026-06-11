@@ -127,8 +127,18 @@
                           </div>
                           <button
                             type="button"
+                            class="icon-button archive-icon-button"
+                            title="Arquivar"
+                            aria-label="Arquivar"
+                            (click)="promptArchivePatient(patient); $event.stopPropagation()"
+                          >
+                            <i class="bi bi-archive" aria-hidden="true"></i>
+                          </button>
+                          <button
+                            type="button"
                             class="icon-button danger-icon-button"
-                            aria-label="Arquivar paciente"
+                            title="Eliminar"
+                            aria-label="Eliminar"
                             (click)="promptDeletePatient(patient); $event.stopPropagation()"
                           >
                             <i class="bi bi-trash" aria-hidden="true"></i>
@@ -180,7 +190,7 @@
             <div class="hero-actions">
               <button type="button" class="primary-button" (click)="createSession()">Agendar sessão</button>
               <button type="button" class="ghost-button" (click)="createReportDraft()">Gerar relatório</button>
-              <button type="button" class="ghost-button" (click)="deletePatient(patient.id)">Arquivar</button>
+              <button type="button" class="ghost-button" (click)="archivePatient(patient.id)">Arquivar</button>
             </div>
           </article>
 
@@ -416,7 +426,7 @@
 
     @if (activeModal() === 'session-create' || activeModal() === 'session-edit') {
       <div class="modal-backdrop" role="presentation">
-        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="session-modal-title" translate="no" (click)="$event.stopPropagation()">
+        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="session-modal-title" (click)="$event.stopPropagation()">
           <div class="modal-heading">
             <div>
               <h2 id="session-modal-title">{{ activeModal() === 'session-edit' ? 'Alterar sessão' : 'Agendar Sessão' }}</h2>
@@ -599,18 +609,39 @@
         </article>
       }
     }
+    @if (activeModal() === 'patient-archive' && patientArchiveTarget(); as patientToArchive) {
+      <div class="modal-backdrop" role="presentation">
+        <section class="modal-panel confirm-modal" role="dialog" aria-modal="true" aria-labelledby="patient-archive-title" (click)="$event.stopPropagation()">
+          <div class="modal-heading">
+            <div>
+              <h2 id="patient-archive-title">Arquivar paciente</h2>
+              <span>{{ patientToArchive.name }}</span>
+            </div>
+            <button type="button" class="icon-button" aria-label="Fechar" (click)="cancelPatientArchive()">x</button>
+          </div>
+          <div class="modal-form confirm-body">
+            <p>Esta ação irá arquivar este paciente. Deseja prosseguir?</p>
+            <div class="modal-actions">
+              <button type="button" class="ghost-button" (click)="cancelPatientArchive()">Não</button>
+              <button type="button" class="primary-button" (click)="confirmPatientArchive()">Sim</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    }
+
     @if (activeModal() === 'patient-delete' && patientDeleteTarget(); as patientToDelete) {
       <div class="modal-backdrop" role="presentation">
         <section class="modal-panel confirm-modal" role="dialog" aria-modal="true" aria-labelledby="patient-delete-title" (click)="$event.stopPropagation()">
           <div class="modal-heading">
             <div>
-              <h2 id="patient-delete-title">Arquivar paciente</h2>
+              <h2 id="patient-delete-title">Eliminar paciente</h2>
               <span>{{ patientToDelete.name }}</span>
             </div>
             <button type="button" class="icon-button" aria-label="Fechar" (click)="cancelPatientDeletion()">x</button>
           </div>
           <div class="modal-form confirm-body">
-            <p>Esta ação irá arquivar este paciente. Deseja prosseguir?</p>
+            <p>Esta ação irá eliminar este paciente. Deseja prosseguir?</p>
             <div class="modal-actions">
               <button type="button" class="ghost-button" (click)="cancelPatientDeletion()">Não</button>
               <button type="button" class="primary-button" (click)="confirmPatientDeletion()">Sim</button>

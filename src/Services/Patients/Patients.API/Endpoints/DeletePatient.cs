@@ -21,7 +21,7 @@ public class DeletePatient : ICarterModule
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Archive Patient")
-        .WithDescription("Marks the patient as inactive instead of deleting it.");
+        .WithSummary("Delete Patient")
+        .WithDescription("Permanently deletes the patient and their clinical records owned by the authenticated therapist.");
     }
 }

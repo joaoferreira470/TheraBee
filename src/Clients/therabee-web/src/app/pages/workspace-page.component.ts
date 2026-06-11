@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 type WorkspacePage = 'therapist' | 'patient' | 'session';
-type ActionModal = 'patient-create' | 'patient-edit' | 'patient-delete' | 'preset' | 'session-create' | 'session-edit' | '';
+type ActionModal = 'patient-create' | 'patient-edit' | 'patient-archive' | 'patient-delete' | 'preset' | 'session-create' | 'session-edit' | '';
 type NotificationKind = 'info' | 'warning' | 'error';
 
 type WorkspaceNotification = {
@@ -232,6 +232,7 @@ export class WorkspacePageComponent {
   readonly selectedSessionDetail = signal<Session | null>(null);
   readonly editingGoalId = signal('');
   readonly editingPatientId = signal('');
+  readonly patientArchiveTarget = signal<Patient | null>(null);
   readonly patientDeleteTarget = signal<Patient | null>(null);
   readonly showArchivedPatients = signal(false);
   readonly activeModal = signal<ActionModal>('');
@@ -471,8 +472,18 @@ export class WorkspacePageComponent {
     this.openActionModal('patient-delete');
   }
 
+  promptArchivePatient(patient: Patient) {
+    this.patientArchiveTarget.set(patient);
+    this.openActionModal('patient-archive');
+  }
+
   cancelPatientDeletion() {
     this.patientDeleteTarget.set(null);
+    this.closeActionModal();
+  }
+
+  cancelPatientArchive() {
+    this.patientArchiveTarget.set(null);
     this.closeActionModal();
   }
 
@@ -550,13 +561,32 @@ export class WorkspacePageComponent {
     }, 'Não foi possível atualizar paciente.');
   }
 
+  async archivePatient(patientId: string) {
+    await this.runApi(async () => {
+      await firstValueFrom(this.http.patch(`${API_BASE_URL}/patients/${patientId}/status`, { status: 'Inactive' }, { headers: this.authHeaders() }));
+      await this.loadWorkspace();
+      await this.goTherapist();
+      this.showNotification('Paciente arquivado.');
+    }, 'Não foi possível arquivar paciente.');
+  }
+
   async deletePatient(patientId: string) {
     await this.runApi(async () => {
       await firstValueFrom(this.http.delete(`${API_BASE_URL}/patients/${patientId}`, { headers: this.authHeaders() }));
       await this.loadWorkspace();
       await this.goTherapist();
-      this.showNotification('Paciente arquivado.');
-    }, 'Não foi possível arquivar paciente.');
+      this.showNotification('Paciente eliminado.', 'warning');
+    }, 'Não foi possível eliminar paciente.');
+  }
+
+  async confirmPatientArchive() {
+    const target = this.patientArchiveTarget();
+    if (!target) {
+      return;
+    }
+
+    this.cancelPatientArchive();
+    await this.archivePatient(target.id);
   }
 
   async confirmPatientDeletion() {

@@ -140,7 +140,7 @@ The Angular application should become a routed product rather than a single oper
 - [ ] Routed therapist hub exists.
 - [x] Therapist-owned patients can be listed.
 - [ ] Patients can be edited from the therapist hub.
-- [ ] Patients can be deleted or archived from the therapist hub.
+- [x] Patients can be deleted or archived from the therapist hub.
 - [ ] Therapist schedule is visible.
 - [ ] Scheduled sessions are shown in the therapist schedule.
 - [ ] Schedule prevents overlapping sessions.
@@ -159,7 +159,7 @@ The Angular application should become a routed product rather than a single oper
 - [x] Patient detail endpoint exposes current Angular patient profile data.
 - [ ] Routed patient page exists.
 - [ ] Patient edit flow is integrated in Angular.
-- [ ] Patient delete/archive flow is integrated in Angular.
+- [x] Patient delete/archive flow is integrated in Angular.
 - [ ] Patient page shows full patient profile.
 - [ ] Patient page shows clinical definitions grouped by areas and objectives.
 - [ ] Patient page shows attended sessions and their assessments.
@@ -290,7 +290,8 @@ The Angular application should become a routed product rather than a single oper
 - [x] Add duplicate detection for patient creation.
 - [x] Expand patient model to the full MVP shape.
 - [ ] Add richer filtering and ownership-aware search across all patient endpoints.
-- [ ] Finalize patient edit/delete/archive behavior for the therapist hub.
+- [x] Finalize patient delete/archive behavior for the therapist hub.
+- [ ] Finalize patient edit behavior for the therapist hub.
 
 ### Phase 4: Therapy Goals
 
@@ -348,7 +349,8 @@ The Angular application should become a routed product rather than a single oper
 - [x] Redirect unauthenticated users to login.
 - [x] Build therapist hub page titled `Therapist X`.
 - [x] Show therapist-owned patient list in hub.
-- [ ] Add edit/delete/archive patient actions in hub.
+- [x] Add delete/archive patient actions in hub.
+- [ ] Add edit patient action in hub.
 - [x] Show therapist schedule in hub.
 - [x] Navigate from patient name to patient page.
 - [x] Navigate from therapist name to therapist hub.
