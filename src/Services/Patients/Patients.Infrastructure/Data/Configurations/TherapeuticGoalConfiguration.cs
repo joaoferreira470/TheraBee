@@ -19,10 +19,6 @@ public class TherapeuticGoalConfiguration : IEntityTypeConfiguration<Therapeutic
             .HasMaxLength(500)
             .IsRequired();
 
-        builder.Property(goal => goal.Area)
-            .HasMaxLength(150)
-            .IsRequired();
-
         builder.Property(goal => goal.Priority)
             .HasConversion<string>()
             .HasMaxLength(20)

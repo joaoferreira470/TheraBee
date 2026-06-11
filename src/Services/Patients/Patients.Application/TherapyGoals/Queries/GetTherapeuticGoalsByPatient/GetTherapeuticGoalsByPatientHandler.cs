@@ -21,7 +21,6 @@ public class GetTherapeuticGoalsByPatientHandler(IApplicationDbContext dbContext
             .AsNoTracking()
             .Where(goal => goal.PatientId == query.PatientId && goal.TherapistId == currentUserId)
             .OrderBy(goal => goal.Type)
-            .ThenBy(goal => goal.Area)
             .ThenBy(goal => goal.Description)
             .ToListAsync(cancellationToken);
 

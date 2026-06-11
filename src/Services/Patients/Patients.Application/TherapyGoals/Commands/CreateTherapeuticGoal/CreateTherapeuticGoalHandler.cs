@@ -25,7 +25,6 @@ public class CreateTherapeuticGoalHandler(IApplicationDbContext dbContext, ICurr
             therapistId: currentUserId,
             type: command.Goal.Type,
             description: command.Goal.Description.Trim(),
-            area: command.Goal.Area.Trim(),
             priority: command.Goal.Priority);
 
         dbContext.TherapeuticGoals.Add(goal);

@@ -5,7 +5,6 @@ public class TherapeuticGoal : Entity<Guid>
     public Guid PatientId { get; set; }
     public Guid TherapistId { get; set; }
     public string Description { get; set; } = default!;
-    public string Area { get; set; } = default!;
     public TherapeuticGoalType Type { get; set; } = TherapeuticGoalType.Objective;
     public TherapeuticGoalPriority Priority { get; set; } = TherapeuticGoalPriority.Medium;
     public TherapeuticGoalStatus Status { get; set; } = TherapeuticGoalStatus.NotStarted;
@@ -16,7 +15,6 @@ public class TherapeuticGoal : Entity<Guid>
         Guid therapistId,
         TherapeuticGoalType type,
         string description,
-        string area,
         TherapeuticGoalPriority priority)
     {
         return new TherapeuticGoal
@@ -25,7 +23,6 @@ public class TherapeuticGoal : Entity<Guid>
             PatientId = patientId,
             TherapistId = therapistId,
             Description = description,
-            Area = area,
             Type = type,
             Priority = priority,
             Status = TherapeuticGoalStatus.NotStarted
@@ -35,12 +32,10 @@ public class TherapeuticGoal : Entity<Guid>
     public void Update(
         TherapeuticGoalType type,
         string description,
-        string area,
         TherapeuticGoalPriority priority)
     {
         Type = type;
         Description = description;
-        Area = area;
         Priority = priority;
     }
 

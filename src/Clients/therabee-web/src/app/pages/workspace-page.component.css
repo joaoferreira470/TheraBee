@@ -318,6 +318,10 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.session-top-grid {
+  align-items: start;
+}
+
 .panel,
 .empty-state {
   padding: 20px;
@@ -543,14 +547,82 @@ h3 {
   gap: 10px;
 }
 
+.session-accordion-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.session-summary-panel,
+.evaluation-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.session-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.session-meta-item {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 247, 249, 0.74);
+}
+
+.session-meta-item small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.session-meta-item strong {
+  font-size: 1rem;
+}
+
+.session-goals-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.compact-session-goal {
+  gap: 6px;
+}
+
+.goal-assessment-card label {
+  gap: 6px;
+}
+
+.goal-assessment-card input {
+  max-width: 120px;
+}
+
+.panel-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.checkpoint-actions {
+  justify-content: flex-end;
+}
+
 .goal-toggle {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  width: 100%;
 }
 
 .goal-toggle strong {
@@ -561,6 +633,23 @@ h3 {
 .goal-toggle small {
   display: block;
   color: var(--muted);
+}
+
+.goal-toggle:hover {
+  border-color: var(--rose);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(120, 45, 73, 0.12);
+}
+
+.goal-toggle.selected {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--rose), var(--coral));
+  color: #fff;
+  box-shadow: 0 16px 32px rgba(224, 91, 116, 0.26);
+}
+
+.goal-toggle.selected small {
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .separated {
@@ -745,8 +834,7 @@ textarea {
   background: #ffeef2 !important;
 }
 
-.patient-hero,
-.session-hero {
+.patient-hero {
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 18px;

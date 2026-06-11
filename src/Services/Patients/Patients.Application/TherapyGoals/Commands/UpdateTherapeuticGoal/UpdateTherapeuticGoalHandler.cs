@@ -19,7 +19,6 @@ public class UpdateTherapeuticGoalHandler(IApplicationDbContext dbContext, ICurr
         goal.Update(
             type: command.Goal.Type,
             description: command.Goal.Description.Trim(),
-            area: command.Goal.Area.Trim(),
             priority: command.Goal.Priority);
 
         dbContext.TherapeuticGoals.Update(goal);

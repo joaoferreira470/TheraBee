@@ -41,8 +41,8 @@ type Patient = {
 type TherapeuticGoal = {
   id: string;
   patientId: string;
+  type: string;
   description: string;
-  area: string;
   priority: string;
   status: string;
 };
@@ -138,8 +138,8 @@ type PatientForm = {
 };
 
 type GoalForm = {
+  type: string;
   description: string;
-  area: string;
   priority: string;
 };
 
@@ -176,8 +176,8 @@ export class App {
   readonly views: { id: View; label: string; hint: string }[] = [
     { id: 'overview', label: 'Resumo', hint: 'Indicadores clinicos' },
     { id: 'patients', label: 'Paciente', hint: 'Ficha, objetivos e plano' },
-    { id: 'sessions', label: 'Sessoes', hint: 'Agenda e checkpoints' },
-    { id: 'reports', label: 'Relatorios', hint: 'PDF e Word' },
+    { id: 'sessions', label: 'Sessões', hint: 'Agenda e checkpoints' },
+    { id: 'reports', label: 'Relatórios', hint: 'PDF e Word' },
   ];
 
   readonly activeView = signal<View>('overview');
@@ -220,8 +220,8 @@ export class App {
   });
 
   readonly goalForm = signal<GoalForm>({
-    description: 'Melhorar coordenacao motora fina',
-    area: 'Motricidade fina',
+    type: 'Objective',
+    description: 'Melhorar coordenação motora fina',
     priority: 'Medium',
   });
 
@@ -233,7 +233,7 @@ export class App {
   });
 
   readonly checkpointForm = signal<CheckpointForm>({
-    clinicalSummary: 'Sessao focada em regulacao tonica e organizacao motora.',
+    clinicalSummary: 'Sessão focada em regulação tónica e organização motora.',
     objectivesWorked: 'Coordenacao bilateral; planeamento motor; atencao sustentada.',
     progressRating: 'Bom progresso',
     activities: 'Circuito motor, encaixes finos e sequencia de tarefas.',
@@ -266,7 +266,7 @@ export class App {
   });
 
   readonly canUseWorkspace = computed(() => this.token().length > 0);
-  readonly activePatientCount = computed(() => this.patients().filter((patient) => patient.status !== 'Archived').length);
+  readonly activePatientCount = computed(() => this.patients().filter((patient) => patient.status?.toLowerCase() === 'active').length);
   readonly pendingSessionCount = computed(() => {
     return this.sessions().filter((session) => session.status === 'Scheduled' || session.status === 'Rescheduled').length;
   });
@@ -322,7 +322,7 @@ export class App {
       localStorage.setItem(TOKEN_KEY, response.auth.accessToken);
       localStorage.setItem(USER_KEY, JSON.stringify(response.auth.user));
       await this.loadWorkspace();
-      this.apiMessage.set(`Sessao iniciada como ${response.auth.user.name}.`);
+      this.apiMessage.set(`Sessão iniciada como ${response.auth.user.name}.`);
     }, 'Nao foi possivel autenticar. Confirma se a API esta a correr.');
   }
 
@@ -338,7 +338,7 @@ export class App {
     this.selectedSessionId.set('');
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    this.apiMessage.set('Sessao terminada localmente.');
+    this.apiMessage.set('Sessão terminada localmente.');
   }
 
   async loadWorkspace() {
@@ -410,8 +410,8 @@ export class App {
     await this.runApi(async () => {
       await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/therapy-goals`, {
         goal: {
+          type: form.type,
           description: form.description,
-          area: form.area,
           priority: form.priority,
         },
       }, { headers: this.authHeaders() }));
@@ -454,7 +454,7 @@ export class App {
 
       await this.loadPatientContext(patientId);
       this.activeView.set('sessions');
-      this.apiMessage.set('Sessao agendada.');
+      this.apiMessage.set('Sessão agendada.');
     }, 'Nao foi possivel agendar sessao.');
   }
 
@@ -568,7 +568,7 @@ export class App {
   goalPriorityLabel(priority: string) {
     return {
       Low: 'Baixa',
-      Medium: 'Media',
+      Medium: 'Média',
       High: 'Alta',
     }[priority] ?? priority;
   }
@@ -586,7 +586,7 @@ export class App {
   sessionTypeLabel(type: string) {
     return {
       Assessment: 'Avaliacao',
-      Intervention: 'Terapia',
+      Intervention: 'Terapêutica',
       Reassessment: 'Reavaliacao',
     }[type] ?? type;
   }

@@ -10,7 +10,6 @@ public static class TherapeuticGoalExtensions
             TherapistId: goal.TherapistId,
             Type: goal.Type,
             Description: goal.Description,
-            Area: goal.Area,
             Priority: goal.Priority,
             Status: goal.Status,
             CreatedAt: goal.CreatedAt);

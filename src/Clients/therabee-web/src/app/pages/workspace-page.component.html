@@ -123,12 +123,12 @@
                           <div class="patient-row-copy">
                             <strong>{{ patient.name }}</strong>
                             <span>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</span>
-                            <small>{{ patient.status }}</small>
+                            <small>{{ patientStatusLabel(patient.status) }}</small>
                           </div>
                           <button
                             type="button"
                             class="icon-button danger-icon-button"
-                            aria-label="Eliminar paciente"
+                            aria-label="Arquivar paciente"
                             (click)="promptDeletePatient(patient); $event.stopPropagation()"
                           >
                             <i class="bi bi-trash" aria-hidden="true"></i>
@@ -195,7 +195,7 @@
             <details class="accordion-panel" open>
               <summary>
                 <span>Dados Paciente</span>
-                <small>{{ patient.status }}</small>
+                <small>{{ patientStatusLabel(patient.status) }}</small>
               </summary>
               <div class="accordion-body">
                 <dl class="detail-list">
@@ -275,7 +275,7 @@
               </summary>
               <div class="accordion-body">
                 <div class="inline-actions modal-launcher">
-                  <button type="button" (click)="openActionModal('session-schedule')">Agendar Sessão</button>
+                  <button type="button" (click)="openActionModal('session-create')">Agendar Sessão</button>
                 </div>
 
                 <div class="stack separated">
@@ -397,11 +397,11 @@
                       <option value="Objective">Objetivo</option>
                     </select>
                   </label>
-                  <label class="wide">Descricao<input [value]="goalForm().description" (input)="updateGoal('description', $any($event.target).value)" /></label>
+                  <label class="wide">Descrição<input [value]="goalForm().description" (input)="updateGoal('description', $any($event.target).value)" /></label>
                   <label>Prioridade
                     <select [value]="goalForm().priority" (change)="updateGoal('priority', $any($event.target).value)">
                       <option value="Low">Baixa</option>
-                      <option value="Medium">Media</option>
+                      <option value="Medium">Média</option>
                       <option value="High">Alta</option>
                     </select>
                   </label>
@@ -414,23 +414,23 @@
             </div>
           }
 
-          @if (activeModal() === 'session-schedule') {
-            <div class="modal-backdrop" role="presentation">
-              <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="session-schedule-title" (click)="$event.stopPropagation()">
-                <div class="modal-heading">
-                  <div>
-                    <h2 id="session-schedule-title">Agendar Sessão</h2>
-                    <span>Agenda do paciente</span>
-                  </div>
-                  <button type="button" class="icon-button" aria-label="Fechar" (click)="closeActionModal()">x</button>
-                </div>
-                <form class="form-grid compact modal-form" (submit)="$event.preventDefault(); createSession()">
-                  <label>Inicio<input type="datetime-local" [value]="sessionForm().startDateTime" (input)="updateSession('startDateTime', $any($event.target).value)" /></label>
-                  <label>Fim<input type="datetime-local" [value]="sessionForm().endDateTime" (input)="updateSession('endDateTime', $any($event.target).value)" /></label>
-                  <label>Tipo
+    @if (activeModal() === 'session-create' || activeModal() === 'session-edit') {
+      <div class="modal-backdrop" role="presentation">
+        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="session-modal-title" translate="no" (click)="$event.stopPropagation()">
+          <div class="modal-heading">
+            <div>
+              <h2 id="session-modal-title">{{ activeModal() === 'session-edit' ? 'Alterar sessão' : 'Agendar Sessão' }}</h2>
+              <span>{{ activeModal() === 'session-edit' ? 'Configuração da sessão atual' : 'Agenda do paciente' }}</span>
+            </div>
+            <button type="button" class="icon-button" aria-label="Fechar" (click)="closeActionModal()">x</button>
+          </div>
+          <form class="form-grid compact modal-form" (submit)="$event.preventDefault(); activeModal() === 'session-edit' ? saveSessionChanges() : createSession()">
+            <label>Data/hora de início<input type="datetime-local" [value]="sessionForm().startDateTime" (input)="updateSession('startDateTime', $any($event.target).value)" /></label>
+            <label>Data/hora de fim<input type="datetime-local" [value]="sessionForm().endDateTime" (input)="updateSession('endDateTime', $any($event.target).value)" /></label>
+            <label>Tipo
                     <select [value]="sessionForm().type" (change)="updateSession('type', $any($event.target).value)">
                       <option value="Assessment">Avaliação</option>
-                      <option value="Intervention">Terapia</option>
+                      <option value="Intervention">Terapêutica</option>
                       <option value="Reassessment">Reavaliação</option>
                     </select>
                   </label>
@@ -438,25 +438,23 @@
                   <div class="goal-picker wide">
                     <div class="panel-heading">
                       <h3>{{ sessionGoalContextLabel() }}</h3>
-                      <span>{{ availableSessionGoals().length }} disponiveis</span>
+                      <span>{{ availableSessionGoals().length }} disponíveis</span>
                     </div>
                     @if (availableSessionGoals().length) {
                       <div class="goal-picker-list">
                         @for (goal of availableSessionGoals(); track goal.id) {
-                          <label class="goal-toggle">
-                            <input type="checkbox" [checked]="isSessionGoalSelected(goal.id)" (change)="toggleSessionGoal(goal.id)" />
+                          <button type="button" class="goal-toggle" [class.selected]="isSessionGoalSelected(goal.id)" (click)="toggleSessionGoal(goal.id)">
                             <span>
                               <strong>{{ goal.description }}</strong>
-                              <small>{{ goalTypeLabel(goal.type) }}</small>
                             </span>
-                          </label>
+                          </button>
                         }
                       </div>
                     } @else {
                       <p class="panel-copy">Ainda não existem objetivos adequados a este tipo de sessão.</p>
                     }
                   </div>
-                  <button type="submit" class="primary-button">Agendar sessão</button>
+                  <button type="submit" class="primary-button">{{ activeModal() === 'session-edit' ? 'Guardar alterações' : 'Agendar sessão' }}</button>
                 </form>
               </section>
             </div>
@@ -472,140 +470,147 @@
 
     @if (currentPage() === 'session') {
       @if (selectedPatient(); as patient) {
-        <section class="view session-page">
-          <article class="panel session-hero">
-            <div>
-              <p class="eyebrow">Sessão clínica</p>
-              <h2>{{ currentSessionLabel() }}</h2>
-              <p>{{ sessionTypeLabel(selectedSession()?.type || '') }} - {{ selectedSession()?.location || 'Sem local' }}</p>
-            </div>
-            <div class="hero-actions">
-              <button type="button" class="primary-button" (click)="saveSessionChanges()">Guardar</button>
-              <button type="button" class="ghost-button" (click)="confirmSession()">Confirmar</button>
-              <button type="button" class="ghost-button" (click)="cancelSession()">Cancelar sessão</button>
-            </div>
-          </article>
+        @if (selectedSession(); as session) {
+          <section class="view session-page">
+            <section class="content-grid session-top-grid">
+              <article class="panel session-summary-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">Sessão clínica</p>
+                    <h2>{{ currentSessionLabel() }}</h2>
+                    <span>{{ sessionTypeLabel(session.type) }} · {{ sessionStatusLabel(session.status) }}</span>
+                  </div>
+                  <span>{{ patient.name }}</span>
+                </div>
 
-          <section class="content-grid patient-grid">
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Alterar sessão</h2>
-                <span>{{ patient.name }}</span>
-              </div>
-              <form class="form-grid compact" (submit)="$event.preventDefault(); saveSessionChanges()">
-                <label>Inicio<input type="datetime-local" [value]="sessionForm().startDateTime" (input)="updateSession('startDateTime', $any($event.target).value)" /></label>
-                <label>Fim<input type="datetime-local" [value]="sessionForm().endDateTime" (input)="updateSession('endDateTime', $any($event.target).value)" /></label>
-                <label>Tipo
-                  <select [value]="sessionForm().type" (change)="updateSession('type', $any($event.target).value)">
-                    <option value="Assessment">Avaliação</option>
-                    <option value="Intervention">Terapia</option>
-                    <option value="Reassessment">Reavaliação</option>
-                  </select>
-                </label>
-                <label>Local<input [value]="sessionForm().location" (input)="updateSession('location', $any($event.target).value)" /></label>
-                <div class="goal-picker">
+                <div class="session-meta-grid">
+                  <div class="session-meta-item">
+                    <small>Data e hora</small>
+                    <strong>{{ formatDateTime(session.startDateTime) }} - {{ formatDateTime(session.endDateTime) }}</strong>
+                  </div>
+                  <div class="session-meta-item">
+                    <small>Local</small>
+                    <strong>{{ session.location || 'Sem local' }}</strong>
+                  </div>
+                </div>
+
+                <div class="session-goals-summary">
                   <div class="panel-heading">
                     <h3>{{ sessionGoalContextLabel() }}</h3>
-                    <span>{{ availableSessionGoals().length }} disponiveis</span>
+                    <span>{{ selectedSessionGoals().length }} seleccionados</span>
                   </div>
-                  @if (availableSessionGoals().length) {
-                    <div class="goal-picker-list">
-                      @for (goal of availableSessionGoals(); track goal.id) {
-                        <label class="goal-toggle">
-                          <input type="checkbox" [checked]="isSessionGoalSelected(goal.id)" (change)="toggleSessionGoal(goal.id)" />
-                          <span>
-                            <strong>{{ goal.description }}</strong>
-                            <small>{{ goalTypeLabel(goal.type) }} - {{ goal.area }}</small>
-                          </span>
-                        </label>
+                  @if (selectedSessionGoals().length) {
+                    <div class="stack">
+                      @for (goal of selectedSessionGoals(); track goal.id) {
+                        <article class="list-card compact-session-goal">
+                          <strong>{{ goal.description }}</strong>
+                          <span>{{ goalTypeLabel(goal.type) }}</span>
+                        </article>
                       }
                     </div>
                   } @else {
-                    <p class="panel-copy">Ainda não existem objetivos adequados a este tipo de sessão.</p>
+                    <p class="panel-copy">Esta sessão ainda não tem {{ sessionGoalContextLabel().toLowerCase() }} associados.</p>
                   }
                 </div>
-                <button type="submit" class="primary-button">Guardar</button>
-              </form>
-            </article>
 
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Avaliação dos objetivos</h2>
-                <span>Score de 0 a 10 e notas clínicas</span>
-              </div>
-              @if (selectedSessionGoals().length) {
-                <div class="stack">
-                  @for (goal of selectedSessionGoals(); track goal.id) {
-                    <article class="list-card goal-assessment-card">
-                      <strong>{{ goal.description }}</strong>
-                      <span>{{ goalTypeLabel(goal.type) }} - {{ goal.area }}</span>
-                      <div class="inline-actions assessment-inline">
+                <div class="panel-footer-actions">
+                  <button type="button" class="ghost-button" (click)="openActionModal('session-edit')">Alterar</button>
+                </div>
+              </article>
+
+              <article class="panel evaluation-panel">
+                <div class="panel-heading">
+                  <h2>Avaliação</h2>
+                  <span>Score de 0 a 10</span>
+                </div>
+                @if (selectedSessionGoals().length) {
+                  <div class="stack">
+                    @for (goal of selectedSessionGoals(); track goal.id) {
+                      <article class="list-card goal-assessment-card compact-session-goal">
+                        <strong>{{ goal.description }}</strong>
+                        <span>{{ goalTypeLabel(goal.type) }}</span>
                         <label>Score<input type="number" min="0" max="10" [value]="assessmentForm()[goal.id]?.score ?? '0'" (input)="updateAssessment(goal.id, 'score', $any($event.target).value)" /></label>
-                      </div>
-                      <label>Notas clínicas<textarea rows="3" [value]="assessmentForm()[goal.id]?.clinicalNotes ?? ''" (input)="updateAssessment(goal.id, 'clinicalNotes', $any($event.target).value)"></textarea></label>
-                    </article>
-                  }
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <p class="panel-copy">Esta sessão ainda não tem objetivos associados para avaliar.</p>
+                }
+
+                <div class="panel-footer-actions">
+                  <button type="button" class="primary-button" (click)="saveSessionAssessments()">Guardar</button>
                 </div>
-              } @else {
-                <p class="panel-copy">Esta sessão ainda não tem objetivos associados para avaliar.</p>
-              }
-            </article>
+              </article>
+            </section>
 
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Avaliação / checkpoint</h2>
-                <span>Objetivos e resposta</span>
-              </div>
-              <form class="checkpoint-form" (submit)="$event.preventDefault(); completeSession(selectedSessionId())">
-                <label>Sumário clínico<textarea rows="3" [value]="checkpointForm().clinicalSummary" (input)="updateCheckpoint('clinicalSummary', $any($event.target).value)"></textarea></label>
-                <label>Objetivos trabalhados<textarea rows="3" [value]="checkpointForm().objectivesWorked" (input)="updateCheckpoint('objectivesWorked', $any($event.target).value)"></textarea></label>
-                <label>Rating de progresso<input [value]="checkpointForm().progressRating" (input)="updateCheckpoint('progressRating', $any($event.target).value)" /></label>
-                <label>Atividades<textarea rows="3" [value]="checkpointForm().activities" (input)="updateCheckpoint('activities', $any($event.target).value)"></textarea></label>
-                <label>Resposta do paciente<textarea rows="3" [value]="checkpointForm().patientResponse" (input)="updateCheckpoint('patientResponse', $any($event.target).value)"></textarea></label>
-                <label>Dificuldades<textarea rows="3" [value]="checkpointForm().difficulties" (input)="updateCheckpoint('difficulties', $any($event.target).value)"></textarea></label>
-                <label>Recomendações<textarea rows="3" [value]="checkpointForm().recommendations" (input)="updateCheckpoint('recommendations', $any($event.target).value)"></textarea></label>
-                <label>Próximos passos<textarea rows="3" [value]="checkpointForm().nextSteps" (input)="updateCheckpoint('nextSteps', $any($event.target).value)"></textarea></label>
-                <button type="submit" class="primary-button">Confirmar</button>
-              </form>
-            </article>
+            <section class="session-accordion-stack">
+              <details class="accordion-panel" open>
+                <summary>
+                  <span>Notas da Sessão</span>
+                  <small>Objetivos e resposta</small>
+                </summary>
+                <div class="accordion-body">
+                  <form class="checkpoint-form" (submit)="$event.preventDefault(); confirmSession()">
+                    <label>Sumário clínico<textarea rows="3" [value]="checkpointForm().clinicalSummary" (input)="updateCheckpoint('clinicalSummary', $any($event.target).value)"></textarea></label>
+                    <label>Objetivos trabalhados<textarea rows="3" [value]="checkpointForm().objectivesWorked" (input)="updateCheckpoint('objectivesWorked', $any($event.target).value)"></textarea></label>
+                    <label>Rating de progresso<input [value]="checkpointForm().progressRating" (input)="updateCheckpoint('progressRating', $any($event.target).value)" /></label>
+                    <label>Atividades<textarea rows="3" [value]="checkpointForm().activities" (input)="updateCheckpoint('activities', $any($event.target).value)"></textarea></label>
+                    <label>Resposta do paciente<textarea rows="3" [value]="checkpointForm().patientResponse" (input)="updateCheckpoint('patientResponse', $any($event.target).value)"></textarea></label>
+                    <label>Dificuldades<textarea rows="3" [value]="checkpointForm().difficulties" (input)="updateCheckpoint('difficulties', $any($event.target).value)"></textarea></label>
+                    <label>Recomendações<textarea rows="3" [value]="checkpointForm().recommendations" (input)="updateCheckpoint('recommendations', $any($event.target).value)"></textarea></label>
+                    <label>Próximos passos<textarea rows="3" [value]="checkpointForm().nextSteps" (input)="updateCheckpoint('nextSteps', $any($event.target).value)"></textarea></label>
+                    <div class="inline-actions checkpoint-actions">
+                      <button type="submit" class="primary-button">Confirmar</button>
+                      <button type="button" class="ghost-button" (click)="cancelSession()">Cancelar sessão</button>
+                    </div>
+                  </form>
+                </div>
+              </details>
+
+              <details class="accordion-panel">
+                <summary>
+                  <span>Histórico da Sessão</span>
+                  <small>Agendadas e concluídas</small>
+                </summary>
+                <div class="accordion-body">
+                  <div class="stack separated">
+                    @for (pastSession of selectedPatientSessions(); track pastSession.id) {
+                      <button type="button" class="list-row" [class.active]="selectedSessionId() === pastSession.id" (click)="goSession(patient.id, pastSession.id)">
+                        <strong>{{ formatDateTime(pastSession.startDateTime) }}</strong>
+                        <span>{{ sessionTypeLabel(pastSession.type) }} - {{ pastSession.location }}</span>
+                        <small>{{ sessionStatusLabel(pastSession.status) }}</small>
+                      </button>
+                    }
+                  </div>
+                </div>
+              </details>
+            </section>
           </section>
-
-          <article class="panel">
-            <div class="panel-heading">
-              <h2>Histórico da sessão</h2>
-              <span>Agendadas e concluídas</span>
-            </div>
-            <div class="stack">
-              @for (session of selectedPatientSessions(); track session.id) {
-                <button type="button" class="list-row" [class.active]="selectedSessionId() === session.id" (click)="goSession(patient.id, session.id)">
-                  <strong>{{ formatDateTime(session.startDateTime) }}</strong>
-                  <span>{{ sessionTypeLabel(session.type) }} - {{ session.location }}</span>
-                  <small>{{ sessionStatusLabel(session.status) }}</small>
-                </button>
-              }
-            </div>
+        } @else {
+          <article class="empty-state">
+            <strong>Sessão indisponível.</strong>
+            <span>Seleciona uma sessão válida para continuar.</span>
           </article>
-        </section>
+        }
       } @else {
         <article class="empty-state">
-          <strong>Seleciona um paciente valido.</strong>
+          <strong>Seleciona um paciente válido.</strong>
           <span>Esta página precisa do contexto de paciente para abrir a sessão.</span>
         </article>
       }
     }
-
     @if (activeModal() === 'patient-delete' && patientDeleteTarget(); as patientToDelete) {
       <div class="modal-backdrop" role="presentation">
         <section class="modal-panel confirm-modal" role="dialog" aria-modal="true" aria-labelledby="patient-delete-title" (click)="$event.stopPropagation()">
           <div class="modal-heading">
             <div>
-              <h2 id="patient-delete-title">Eliminar paciente</h2>
+              <h2 id="patient-delete-title">Arquivar paciente</h2>
               <span>{{ patientToDelete.name }}</span>
             </div>
             <button type="button" class="icon-button" aria-label="Fechar" (click)="cancelPatientDeletion()">x</button>
           </div>
           <div class="modal-form confirm-body">
-            <p>Esta ação irá eliminar este paciente. Deseja prosseguir?</p>
+            <p>Esta ação irá arquivar este paciente. Deseja prosseguir?</p>
             <div class="modal-actions">
               <button type="button" class="ghost-button" (click)="cancelPatientDeletion()">Não</button>
               <button type="button" class="primary-button" (click)="confirmPatientDeletion()">Sim</button>

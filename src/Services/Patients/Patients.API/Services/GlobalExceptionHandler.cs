@@ -13,8 +13,6 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         Exception exception,
         CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "Unhandled exception while processing request.");
-
         var (statusCode, title, detail, errors) = exception switch
         {
             ValidationException validationException => (
@@ -70,6 +68,15 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 "An unexpected error occurred.",
                 Array.Empty<object>())
         };
+
+        if (statusCode >= StatusCodes.Status500InternalServerError)
+        {
+            logger.LogError(exception, "Unhandled exception while processing request.");
+        }
+        else
+        {
+            logger.LogWarning(exception, "Handled request exception with status code {StatusCode}.", statusCode);
+        }
 
         httpContext.Response.StatusCode = statusCode;
 

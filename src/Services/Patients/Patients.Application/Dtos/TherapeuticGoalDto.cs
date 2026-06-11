@@ -6,7 +6,6 @@ public record TherapeuticGoalDto(
     Guid TherapistId,
     TherapeuticGoalType Type,
     string Description,
-    string Area,
     TherapeuticGoalPriority Priority,
     TherapeuticGoalStatus Status,
     DateTime? CreatedAt);

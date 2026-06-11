@@ -1,11 +1,11 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+﻿import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 type WorkspacePage = 'therapist' | 'patient' | 'session';
-type ActionModal = 'patient-create' | 'patient-edit' | 'patient-delete' | 'preset' | 'session-schedule' | '';
+type ActionModal = 'patient-create' | 'patient-edit' | 'patient-delete' | 'preset' | 'session-create' | 'session-edit' | '';
 type NotificationKind = 'info' | 'warning' | 'error';
 
 type WorkspaceNotification = {
@@ -50,7 +50,6 @@ type TherapeuticGoal = {
   patientId: string;
   type: string;
   description: string;
-  area: string;
   priority: string;
   status: string;
 };
@@ -170,7 +169,6 @@ type PatientEditForm = {
 type GoalForm = {
   type: string;
   description: string;
-  area: string;
   priority: string;
 };
 
@@ -238,22 +236,7 @@ export class WorkspacePageComponent {
   readonly showArchivedPatients = signal(false);
   readonly activeModal = signal<ActionModal>('');
 
-  readonly patientForm = signal<PatientForm>({
-    name: 'Maria Silva',
-    dateOfBirth: '1990-05-20',
-    mainDiagnosis: 'Intervenção psicomotora',
-    gender: 'Feminino',
-    phoneNumber: '910000000',
-    email: 'maria@example.com',
-    caregiverName: 'Ana Silva',
-    caregiverPhone: '920000000',
-    referralReason: 'Acompanhamento de progresso funcional',
-    generalNotes: 'Paciente acompanhada em contexto clínico.',
-    addressLine: 'Rua das Flores 10',
-    district: 'Lisboa',
-    location: 'Lisboa',
-    zipCode: '1000-001',
-  });
+  readonly patientForm = signal<PatientForm>(this.createEmptyPatientForm());
 
   readonly patientEditForm = signal<PatientEditForm>({
     id: '',
@@ -275,8 +258,7 @@ export class WorkspacePageComponent {
 
   readonly goalForm = signal<GoalForm>({
     type: 'Objective',
-    description: 'Melhorar coordenação motora fina',
-    area: 'Motricidade fina',
+    description: '',
     priority: 'Medium',
   });
 
@@ -417,6 +399,10 @@ export class WorkspacePageComponent {
   updateSession(field: keyof SessionForm, value: string) {
     this.sessionForm.update((form) => {
       const next = { ...form, [field]: value };
+      if (field === 'startDateTime' && value) {
+        next.endDateTime = this.addOneHour(value);
+      }
+
       if (field === 'type') {
         const allowedGoalIds = new Set(this.goalIdsForSessionType(value));
         next.goalIds = form.goalIds.filter((goalId) => allowedGoalIds.has(goalId));
@@ -442,6 +428,10 @@ export class WorkspacePageComponent {
   }
 
   openActionModal(modal: ActionModal) {
+    if (modal === 'patient-create') {
+      this.patientForm.set(this.createEmptyPatientForm());
+    }
+
     this.activeModal.set(modal);
   }
 
@@ -451,6 +441,25 @@ export class WorkspacePageComponent {
 
   private isActivePatient(patient: Patient) {
     return (patient.status ?? '').toLowerCase() === 'active';
+  }
+
+  private createEmptyPatientForm(): PatientForm {
+    return {
+      name: '',
+      dateOfBirth: '',
+      mainDiagnosis: '',
+      gender: '',
+      phoneNumber: '',
+      email: '',
+      caregiverName: '',
+      caregiverPhone: '',
+      referralReason: '',
+      generalNotes: '',
+      addressLine: '',
+      district: '',
+      location: '',
+      zipCode: '',
+    };
   }
 
   toggleArchivedPatients(checked: boolean) {
@@ -597,7 +606,6 @@ export class WorkspacePageComponent {
           goal: {
             type: form.type,
             description: form.description,
-            area: form.area,
             priority: form.priority,
           },
         }, { headers: this.authHeaders() }));
@@ -606,7 +614,6 @@ export class WorkspacePageComponent {
           goal: {
             type: form.type,
             description: form.description,
-            area: form.area,
             priority: form.priority,
           },
         }, { headers: this.authHeaders() }));
@@ -619,7 +626,6 @@ export class WorkspacePageComponent {
         patientId,
         type: form.type as TherapeuticGoal['type'],
         description: form.description,
-        area: form.area,
         priority: form.priority as TherapeuticGoal['priority'],
         status: editingGoalId
           ? this.goals().find((goal) => goal.id === editingGoalId)?.status ?? 'NotStarted'
@@ -639,7 +645,6 @@ export class WorkspacePageComponent {
     this.goalForm.set({
       type: goal.type,
       description: goal.description,
-      area: goal.area,
       priority: goal.priority,
     });
     this.openActionModal('preset');
@@ -649,8 +654,7 @@ export class WorkspacePageComponent {
     this.editingGoalId.set('');
     this.goalForm.set({
       type: 'Objective',
-      description: 'Melhorar coordenação motora fina',
-      area: 'Motricidade fina',
+      description: '',
       priority: 'Medium',
     });
   }
@@ -677,7 +681,13 @@ export class WorkspacePageComponent {
     }
 
     await this.runApi(async () => {
-      const response = await firstValueFrom(this.http.post<{ id: string }>(`${API_BASE_URL}/patients/${patientId}/sessions`, {
+      const validationMessage = this.sessionDateValidationMessage(form);
+      if (validationMessage) {
+        this.showNotification(validationMessage, 'warning');
+        return;
+      }
+
+      await firstValueFrom(this.http.post<{ id: string }>(`${API_BASE_URL}/patients/${patientId}/sessions`, {
         session: {
           startDateTime: this.toIsoDateTime(form.startDateTime),
           endDateTime: this.toIsoDateTime(form.endDateTime),
@@ -688,7 +698,7 @@ export class WorkspacePageComponent {
       }, { headers: this.authHeaders() }));
 
       await this.loadWorkspace();
-      await this.goSession(patientId, response.id);
+      await this.loadPatientContext(patientId, null);
       this.closeActionModal();
       this.showNotification('Sessão agendada.');
     }, 'Não foi possível agendar sessão.');
@@ -702,6 +712,12 @@ export class WorkspacePageComponent {
 
     const form = this.sessionForm();
     await this.runApi(async () => {
+      const validationMessage = this.sessionDateValidationMessage(form);
+      if (validationMessage) {
+        this.showNotification(validationMessage, 'warning');
+        return;
+      }
+
       await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/reschedule`, {
         session: {
           startDateTime: this.toIsoDateTime(form.startDateTime),
@@ -758,26 +774,26 @@ export class WorkspacePageComponent {
       return;
     }
 
-    const goals = this.selectedSessionGoals();
-    const form = this.assessmentForm();
-    const assessments = goals.map((goal) => ({
-      therapeuticGoalId: goal.id,
-      score: Number(form[goal.id]?.score ?? 0),
-      clinicalNotes: form[goal.id]?.clinicalNotes ?? '',
-    }));
-
     await this.runApi(async () => {
-      await firstValueFrom(this.http.put(`${API_BASE_URL}/sessions/${session.id}/goal-assessments`, {
-        assessments: {
-          assessments,
-        },
-      }, { headers: this.authHeaders() }));
-
+      await this.saveSessionAssessmentsInternal(session.id);
       await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/complete`, { session: this.checkpointForm() }, { headers: this.authHeaders() }));
 
       await this.loadPatientContext(session.patientId, session.id);
       this.showNotification('Avaliações submetidas e sessão confirmada.');
     }, 'Não foi possível confirmar a sessão.');
+  }
+
+  async saveSessionAssessments() {
+    const session = this.selectedSession();
+    if (!session) {
+      return;
+    }
+
+    await this.runApi(async () => {
+      await this.saveSessionAssessmentsInternal(session.id);
+      await this.loadPatientContext(session.patientId, session.id);
+      this.showNotification('Avaliações guardadas.');
+    }, 'Não foi possível guardar as avaliações.');
   }
 
   async createReportDraft() {
@@ -1057,6 +1073,22 @@ export class WorkspacePageComponent {
       : this.selectedPatientAreas().map((goal) => goal.id);
   }
 
+  private async saveSessionAssessmentsInternal(sessionId: string) {
+    const goals = this.selectedSessionGoals();
+    const form = this.assessmentForm();
+    const assessments = goals.map((goal) => ({
+      therapeuticGoalId: goal.id,
+      score: Number(form[goal.id]?.score ?? 0),
+      clinicalNotes: form[goal.id]?.clinicalNotes ?? '',
+    }));
+
+    await firstValueFrom(this.http.put(`${API_BASE_URL}/sessions/${sessionId}/goal-assessments`, {
+      assessments: {
+        assessments,
+      },
+    }, { headers: this.authHeaders() }));
+  }
+
   sessionStatusLabel(status: string) {
     return {
       Scheduled: 'Agendada',
@@ -1067,10 +1099,18 @@ export class WorkspacePageComponent {
     }[status] ?? status;
   }
 
+  patientStatusLabel(status: string) {
+    return {
+      Active: 'Ativo',
+      Inactive: 'Arquivado',
+      Archived: 'Arquivado',
+    }[status] ?? status;
+  }
+
   sessionTypeLabel(type: string) {
     return {
       Assessment: 'Avaliação',
-      Intervention: 'Terapia',
+      Intervention: 'Terapêutica',
       Reassessment: 'Reavaliação',
     }[type] ?? type;
   }
@@ -1094,10 +1134,51 @@ export class WorkspacePageComponent {
       await action();
     } catch (error) {
       console.error(error);
-      this.showNotification(failureMessage, 'error');
+      if (this.apiStatusCode(error) === 401) {
+        await this.logout();
+        return;
+      }
+
+      this.showNotification(this.apiErrorMessage(error, failureMessage), 'error');
     } finally {
       this.isBusy.set(false);
     }
+  }
+
+  private apiStatusCode(error: unknown) {
+    return (error as { status?: number })?.status ?? 0;
+  }
+
+  private apiErrorMessage(error: unknown, fallback: string) {
+    const candidate = error as { error?: unknown };
+    const rawProblem = candidate?.error;
+
+    if (typeof rawProblem === 'string' && rawProblem.trim()) {
+      return rawProblem;
+    }
+
+    const problem = rawProblem as { detail?: string; title?: string; errors?: { message?: string }[] } | undefined;
+
+    if (problem?.detail) {
+      return problem.detail;
+    }
+
+    if (problem?.title) {
+      return problem.title;
+    }
+
+    if (Array.isArray(problem?.errors) && problem.errors.length > 0) {
+      const messages = problem.errors
+        .map((item) => item.message)
+        .filter(Boolean)
+        .join(' ');
+
+      if (messages) {
+        return messages;
+      }
+    }
+
+    return fallback;
   }
 
   dismissNotification() {
@@ -1146,6 +1227,35 @@ export class WorkspacePageComponent {
     return new Date(value).toISOString();
   }
 
+  private addOneHour(value: string) {
+    const date = new Date(value);
+    date.setHours(date.getHours() + 1);
+    return this.toLocalDateTime(date.toISOString());
+  }
+
+  private sessionDateValidationMessage(form: SessionForm) {
+    if (!form.startDateTime || !form.endDateTime) {
+      return 'Define a data/hora de início e a data/hora de fim da sessão.';
+    }
+
+    const start = new Date(form.startDateTime);
+    const end = new Date(form.endDateTime);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return 'As datas da sessão não são válidas.';
+    }
+
+    if (end <= start) {
+      return 'A data/hora de fim tem de ser posterior à data/hora de início.';
+    }
+
+    if (form.startDateTime.slice(0, 10) !== form.endDateTime.slice(0, 10)) {
+      return 'A sessão tem de começar e terminar no mesmo dia. Sessões multi-dia não são suportadas.';
+    }
+
+    return '';
+  }
+
   private toLocalDateTime(value: string) {
     const date = new Date(value);
     const pad = (num: number) => `${num}`.padStart(2, '0');
@@ -1184,3 +1294,4 @@ export class WorkspacePageComponent {
     return form;
   }
 }
+

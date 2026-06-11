@@ -53,7 +53,7 @@ Areas and objectives are independent presets. An objective does not need to be a
 - [x] `Objective`: concrete therapeutic objective that can be evaluated over time.
 - [x] Areas and objectives can be created independently from sessions.
 - [x] Areas and objectives can be reused across multiple sessions.
-- [x] Areas and objectives have area/category text, priority, status, and type.
+- [x] Areas and objectives have type, description, priority, and status.
 - [x] Areas and objectives do not require a parent/child relationship.
 
 Recommended relationship:

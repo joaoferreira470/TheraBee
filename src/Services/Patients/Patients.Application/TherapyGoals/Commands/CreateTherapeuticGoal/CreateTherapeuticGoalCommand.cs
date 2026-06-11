@@ -14,7 +14,6 @@ public class CreateTherapeuticGoalValidator : AbstractValidator<CreateTherapeuti
         RuleFor(x => x.PatientId).NotEmpty().WithMessage("PatientId is required");
         RuleFor(x => x.Goal.Type).IsInEnum().WithMessage("Type is required");
         RuleFor(x => x.Goal.Description).NotEmpty().MaximumLength(500).WithMessage("Description is required");
-        RuleFor(x => x.Goal.Area).NotEmpty().MaximumLength(150).WithMessage("Area is required");
         RuleFor(x => x.Goal.Priority).IsInEnum().WithMessage("Priority is required");
     }
 }

@@ -133,7 +133,7 @@
               <strong>{{ completedSessionCount() }}</strong>
             </article>
             <article class="metric-card">
-              <span>Relatorios</span>
+              <span>Relatórios</span>
               <strong>{{ reports().length }}</strong>
             </article>
           </div>
@@ -228,7 +228,7 @@
                   <strong>{{ selectedPatientSessions().length }}</strong>
                 </article>
                 <article class="metric-card">
-                  <span>Relatorios</span>
+                  <span>Relatórios</span>
                   <strong>{{ selectedPatientReports().length }}</strong>
                 </article>
               </div>
@@ -306,14 +306,14 @@
                   </div>
                   <form class="form-grid compact" (submit)="$event.preventDefault(); createGoal()">
                     <label class="wide">
-                      Descricao
+                      Descrição
                       <input [value]="goalForm().description" (input)="updateGoal('description', $any($event.target).value)" />
                     </label>
                     <label>
                       Prioridade
                       <select [value]="goalForm().priority" (change)="updateGoal('priority', $any($event.target).value)">
                         <option value="Low">Baixa</option>
-                        <option value="Medium">Media</option>
+                        <option value="Medium">Média</option>
                         <option value="High">Alta</option>
                       </select>
                     </label>
@@ -324,7 +324,7 @@
                     @for (goal of selectedPatientGoals(); track goal.id) {
                       <article class="list-card">
                         <strong>{{ goal.description }}</strong>
-                        <span>{{ goal.area }} - {{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
+                        <span>{{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
                         <div class="inline-actions">
                           <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>
                           <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcançado</button>
@@ -370,7 +370,7 @@
             </div>
             <form class="form-grid compact" (submit)="$event.preventDefault(); createSession()">
               <label>
-                Inicio
+                Início
                 <input type="datetime-local" [value]="sessionForm().startDateTime" (input)="updateSession('startDateTime', $any($event.target).value)" />
               </label>
               <label>
@@ -381,7 +381,7 @@
                 Tipo
                 <select [value]="sessionForm().type" (change)="updateSession('type', $any($event.target).value)">
                   <option value="Assessment">Avaliacao</option>
-                  <option value="Intervention">Terapia</option>
+                  <option value="Intervention">Terapêutica</option>
                   <option value="Reassessment">Reavaliacao</option>
                 </select>
               </label>

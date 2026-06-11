@@ -29,7 +29,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
         var goals = await dbContext.TherapeuticGoals
             .AsNoTracking()
             .Where(goal => goal.PatientId == patientId && goal.TherapistId == therapistId)
-            .OrderBy(goal => goal.Area)
+            .OrderBy(goal => goal.Type)
             .ThenBy(goal => goal.Description)
             .ToListAsync(cancellationToken);
 
@@ -108,7 +108,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
     private static string BuildGoalProgressSummary(IEnumerable<TherapeuticGoal> goals, PatientProgressDashboardDto dashboard)
     {
         var goalList = goals.Any()
-            ? string.Join(", ", goals.Select(goal => $"{goal.Area} ({LocalizeGoalStatus(goal.Status.ToString())})"))
+            ? string.Join(", ", goals.Select(goal => $"{LocalizeGoalType(goal.Type.ToString())}: {goal.Description} ({LocalizeGoalStatus(goal.Status.ToString())})"))
             : "Ainda não existem objetivos registados.";
 
         return string.Join(Environment.NewLine, new[]
@@ -119,7 +119,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             $"Alcançados: {dashboard.Goals.AchievedGoals}",
             $"Suspensos: {dashboard.Goals.SuspendedGoals}",
             $"Taxa de conclusão: {dashboard.Goals.CompletionRate:0.#}%",
-            $"Áreas trabalhadas: {goalList}"
+            $"Presets trabalhados: {goalList}"
         });
     }
 
@@ -200,6 +200,15 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             "Assessment" => "avaliação",
             "Intervention" => "intervenção",
             "FollowUp" => "seguimento",
+            _ => type
+        };
+    }
+    private static string LocalizeGoalType(string type)
+    {
+        return type switch
+        {
+            "Area" => "area",
+            "Objective" => "objetivo",
             _ => type
         };
     }
