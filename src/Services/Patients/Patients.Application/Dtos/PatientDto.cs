@@ -17,4 +17,6 @@ public record PatientDto(
     string? ReferralReason,
     string? GeneralNotes,
     Guid TherapistId,
-    PatientStatus Status);
+    PatientStatus Status,
+    bool HasPortrait,
+    DateTime? PortraitUpdatedAt);

@@ -408,6 +408,19 @@ The Angular application should become a routed product rather than a single oper
 - [x] Add authentication before handling anything sensitive.
 - [ ] Document deployment environment variables and seed strategy.
 
+### Phase 15: Portrait Uploads
+
+- [x] Add private portrait storage abstraction.
+- [x] Add local persistent storage for development.
+- [x] Store portrait references and metadata for therapists and patients.
+- [ ] Validate, resize, crop, and convert uploaded images.
+- [x] Add authenticated upload, download, and removal endpoints.
+- [x] Enforce therapist ownership for patient portraits.
+- [x] Remove patient portrait files during permanent patient deletion.
+- [x] Add Angular portrait upload and display service.
+- [x] Add therapist and patient portrait upload controls.
+- [x] Preserve avatar placeholders when no portrait exists.
+
 ## Branching Rule
 
 Before changing existing code, create or switch to a branch that matches the intent:

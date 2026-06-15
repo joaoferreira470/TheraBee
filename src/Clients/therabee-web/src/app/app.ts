@@ -160,7 +160,7 @@ type CheckpointForm = {
   nextSteps: string;
 };
 
-const API_BASE_URL = 'http://localhost:6001';
+const API_BASE_URL = 'http://localhost:5000';
 const TOKEN_KEY = 'therabee_token';
 const USER_KEY = 'therabee_user';
 

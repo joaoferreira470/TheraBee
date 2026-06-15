@@ -50,11 +50,29 @@
 
       <div class="status-card">
         @if (user(); as currentUser) {
+          <input
+            #therapistPortraitInput
+            class="visually-hidden"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="uploadTherapistPortrait($event)"
+          />
+          <button
+            type="button"
+            class="avatar portrait-control"
+            title="Carregar fotografia"
+            aria-label="Carregar fotografia do terapeuta"
+            (click)="therapistPortraitInput.click()"
+          >
+            @if (therapistPortraitUrl(); as portraitUrl) {
+              <img [src]="portraitUrl" [alt]="'Fotografia de ' + currentUser.name" />
+            } @else {
+              <span>{{ currentUser.name.slice(0, 2).toUpperCase() }}</span>
+              <i class="bi bi-image" aria-hidden="true"></i>
+            }
+          </button>
           <button type="button" class="user-link" (click)="goTherapist()">
-            <span class="avatar">{{ currentUser.name.slice(0, 2).toUpperCase() }}</span>
-            <div>
-              <strong>{{ currentUser.name }}</strong>
-            </div>
+            <strong>{{ currentUser.name }}</strong>
           </button>
           <button type="button" class="ghost-button" (click)="logout()">Sair</button>
         }
@@ -182,7 +200,27 @@
         <section class="view patient-page">
           <article class="patient-hero panel">
             <div class="patient-portrait" aria-label="Retrato do paciente">
-              <i class="bi bi-person-fill" aria-hidden="true"></i>
+              @if (patientPortraitUrl(); as portraitUrl) {
+                <img [src]="portraitUrl" [alt]="'Fotografia de ' + patient.name" />
+              } @else {
+                <i class="bi bi-person-fill" aria-hidden="true"></i>
+              }
+              <input
+                #patientPortraitInput
+                class="visually-hidden"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="uploadPatientPortrait($event, patient)"
+              />
+              <button
+                type="button"
+                class="portrait-upload-trigger"
+                title="Carregar fotografia"
+                aria-label="Carregar fotografia do paciente"
+                (click)="patientPortraitInput.click()"
+              >
+                <i class="bi bi-image" aria-hidden="true"></i>
+              </button>
             </div>
             <div class="patient-hero-copy">
               <p class="eyebrow">Ficha do paciente</p>

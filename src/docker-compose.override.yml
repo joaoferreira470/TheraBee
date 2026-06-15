@@ -4,10 +4,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ConnectionStrings__DefaultConnection=Host=patientsdb;Port=5432;Database=therabee_patients;Username=postgres;Password=secret
+      - PortraitStorage__RootPath=/app/data/portraits
     depends_on:
       - patientsdb
     ports:
       - "6001:8080"
+    volumes:
+      - portrait_images:/app/data/portraits
 
   patientsdb:
     container_name: therabee-postgres

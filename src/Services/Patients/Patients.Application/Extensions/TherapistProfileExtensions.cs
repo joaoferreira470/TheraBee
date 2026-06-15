@@ -13,7 +13,9 @@ public static class TherapistProfileExtensions
             profile.ProfessionalNumber,
             profile.PhoneNumber,
             profile.Workplace,
-            profile.ReportSignature);
+            profile.ReportSignature,
+            profile.PortraitStorageKey is not null,
+            profile.PortraitUpdatedAt);
     }
 }
 

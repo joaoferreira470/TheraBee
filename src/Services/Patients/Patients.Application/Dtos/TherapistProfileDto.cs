@@ -9,5 +9,7 @@ public record TherapistProfileDto(
     string? ProfessionalNumber,
     string? PhoneNumber,
     string? Workplace,
-    string? ReportSignature);
+    string? ReportSignature,
+    bool HasPortrait,
+    DateTime? PortraitUpdatedAt);
 

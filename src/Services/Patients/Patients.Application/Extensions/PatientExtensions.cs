@@ -23,7 +23,9 @@ public static class PatientExtensions
             ReferralReason: patient.ReferralReason,
             GeneralNotes: patient.GeneralNotes,
             TherapistId: patient.TherapistId,
-            Status: patient.Status);
+            Status: patient.Status,
+            HasPortrait: patient.PortraitStorageKey is not null,
+            PortraitUpdatedAt: patient.PortraitUpdatedAt);
     }
 
     public static IEnumerable<PatientDto> ToPatientDtoList(this IEnumerable<Patient> patients)

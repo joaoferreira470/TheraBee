@@ -18,6 +18,9 @@ public class Patient : Aggregate<PatientId>
     public string? ReferralReason { get; set; }
     public string? GeneralNotes { get; set; }
     public Guid TherapistId { get; set; } = default!;
+    public string? PortraitStorageKey { get; set; }
+    public string? PortraitContentType { get; set; }
+    public DateTime? PortraitUpdatedAt { get; set; }
 
     public static Patient Create(
         PatientId id,
@@ -90,6 +93,22 @@ public class Patient : Aggregate<PatientId>
     public void UpdateStatus(PatientStatus status)
     {
         Status = status;
+        AddDomainEvent(new PatientUpdatedEvent(this));
+    }
+
+    public void SetPortrait(string storageKey, string contentType, DateTime updatedAt)
+    {
+        PortraitStorageKey = storageKey;
+        PortraitContentType = contentType;
+        PortraitUpdatedAt = updatedAt;
+        AddDomainEvent(new PatientUpdatedEvent(this));
+    }
+
+    public void RemovePortrait()
+    {
+        PortraitStorageKey = null;
+        PortraitContentType = null;
+        PortraitUpdatedAt = null;
         AddDomainEvent(new PatientUpdatedEvent(this));
     }
 }

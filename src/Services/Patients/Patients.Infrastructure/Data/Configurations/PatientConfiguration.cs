@@ -72,5 +72,11 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
 
         builder.Property(p => p.TherapistId)
             .IsRequired();
+
+        builder.Property(p => p.PortraitStorageKey)
+            .HasMaxLength(500);
+
+        builder.Property(p => p.PortraitContentType)
+            .HasMaxLength(100);
     }
 }

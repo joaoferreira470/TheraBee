@@ -1,8 +1,9 @@
 ﻿import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { PortraitService } from '../services/portrait.service';
 
 type WorkspacePage = 'therapist' | 'patient' | 'session';
 type ActionModal = 'patient-create' | 'patient-edit' | 'patient-archive' | 'patient-delete' | 'preset' | 'preset-delete' | 'session-create' | 'session-edit' | '';
@@ -43,6 +44,16 @@ type Patient = {
   generalNotes?: string | null;
   therapistId: string;
   status: string;
+  hasPortrait: boolean;
+  portraitUpdatedAt?: string | null;
+};
+
+type TherapistProfile = {
+  id: string;
+  userId: string;
+  professionalName: string;
+  hasPortrait: boolean;
+  portraitUpdatedAt?: string | null;
 };
 
 type TherapeuticGoal = {
@@ -205,8 +216,9 @@ const USER_KEY = 'therabee_user';
   templateUrl: './workspace-page.component.html',
   styleUrl: './workspace-page.component.css',
 })
-export class WorkspacePageComponent {
+export class WorkspacePageComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
+  private readonly portraitService = inject(PortraitService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly routeData = toSignal(this.route.data, { initialValue: this.route.snapshot.data });
@@ -216,6 +228,9 @@ export class WorkspacePageComponent {
   readonly currentPage = computed<WorkspacePage>(() => (this.routeData()?.['page'] as WorkspacePage) ?? 'therapist');
   readonly token = signal(this.readStoredToken());
   readonly user = signal<AuthUser | null>(this.readStoredUser());
+  readonly therapistProfile = signal<TherapistProfile | null>(null);
+  readonly therapistPortraitUrl = signal<string | null>(null);
+  readonly patientPortraitUrl = signal<string | null>(null);
   readonly notification = signal<WorkspaceNotification | null>(null);
   readonly isBusy = signal(false);
 
@@ -353,6 +368,11 @@ export class WorkspacePageComponent {
     });
   }
 
+  ngOnDestroy(): void {
+    this.portraitService.revokeObjectUrl(this.therapistPortraitUrl());
+    this.portraitService.revokeObjectUrl(this.patientPortraitUrl());
+  }
+
   async goTherapist() {
     await this.router.navigate(['/therapist']);
   }
@@ -378,6 +398,8 @@ export class WorkspacePageComponent {
     this.selectedSessionId.set('');
     this.selectedPatientDetail.set(null);
     this.selectedSessionDetail.set(null);
+    this.replaceTherapistPortraitUrl(null);
+    this.replacePatientPortraitUrl(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     await this.router.navigate(['/login']);
@@ -440,6 +462,51 @@ export class WorkspacePageComponent {
     }
 
     this.activeModal.set('');
+  }
+
+  async uploadTherapistPortrait(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.isValidPortraitFile(file)) {
+      input.value = '';
+      return;
+    }
+
+    await this.runApi(async () => {
+      const portrait = await firstValueFrom(this.portraitService.uploadCurrentTherapist(file));
+      this.therapistProfile.update((profile) => profile
+        ? { ...profile, hasPortrait: portrait.hasPortrait, portraitUpdatedAt: portrait.updatedAt }
+        : profile);
+      await this.loadTherapistPortrait();
+      this.showNotification('Fotografia do terapeuta atualizada.');
+    }, 'Não foi possível carregar a fotografia do terapeuta.');
+
+    input.value = '';
+  }
+
+  async uploadPatientPortrait(event: Event, patient: Patient) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.isValidPortraitFile(file)) {
+      input.value = '';
+      return;
+    }
+
+    await this.runApi(async () => {
+      const portrait = await firstValueFrom(this.portraitService.uploadPatient(patient.id, file));
+      const updatedPatient = {
+        ...patient,
+        hasPortrait: portrait.hasPortrait,
+        portraitUpdatedAt: portrait.updatedAt,
+      };
+      this.selectedPatientDetail.set(updatedPatient);
+      this.patients.update((patients) => patients.map((item) =>
+        item.id === patient.id ? updatedPatient : item));
+      await this.loadPatientPortrait(updatedPatient);
+      this.showNotification('Fotografia do paciente atualizada.');
+    }, 'Não foi possível carregar a fotografia do paciente.');
+
+    input.value = '';
   }
 
   private isActivePatient(patient: Patient) {
@@ -890,13 +957,20 @@ export class WorkspacePageComponent {
 
   async loadWorkspace() {
     await this.runApi(async () => {
-      const [patientsResponse, sessionsResponse] = await Promise.all([
+      const [patientsResponse, sessionsResponse, therapistResponse] = await Promise.all([
         firstValueFrom(this.http.get<{ patients: Patient[] }>(`${API_BASE_URL}/patients/me`, { headers: this.authHeaders() })),
         firstValueFrom(this.http.get<{ sessions: Session[] }>(`${API_BASE_URL}/sessions`, { headers: this.authHeaders() })),
+        firstValueFrom(this.http.get<{ therapist: TherapistProfile }>(`${API_BASE_URL}/therapists/me`, { headers: this.authHeaders() })),
       ]);
 
       this.patients.set(patientsResponse.patients);
       this.sessions.set(sessionsResponse.sessions);
+      this.therapistProfile.set(therapistResponse.therapist);
+      if (therapistResponse.therapist.hasPortrait) {
+        await this.loadTherapistPortrait();
+      } else {
+        this.replaceTherapistPortraitUrl(null);
+      }
     }, 'Não consegui carregar o workspace. Confirma a API, o Docker e a base de dados.');
   }
 
@@ -917,6 +991,11 @@ export class WorkspacePageComponent {
       ]);
 
       this.selectedPatientDetail.set(patientResponse.patient);
+      if (patientResponse.patient.hasPortrait) {
+        await this.loadPatientPortrait(patientResponse.patient);
+      } else {
+        this.replacePatientPortraitUrl(null);
+      }
       this.sessions.update((sessions) => [
         ...sessions.filter((session) => session.patientId !== patientId),
         ...(sessionsResponse.status === 'fulfilled' ? sessionsResponse.value.sessions : []),
@@ -1159,6 +1238,41 @@ export class WorkspacePageComponent {
 
   private authHeaders() {
     return new HttpHeaders({ Authorization: `Bearer ${this.token()}` });
+  }
+
+  private async loadTherapistPortrait() {
+    const url = await firstValueFrom(this.portraitService.loadCurrentTherapist());
+    this.replaceTherapistPortraitUrl(url);
+  }
+
+  private async loadPatientPortrait(patient: Patient) {
+    const url = await firstValueFrom(this.portraitService.loadPatient(patient.id));
+    this.replacePatientPortraitUrl(url);
+  }
+
+  private replaceTherapistPortraitUrl(url: string | null) {
+    this.portraitService.revokeObjectUrl(this.therapistPortraitUrl());
+    this.therapistPortraitUrl.set(url);
+  }
+
+  private replacePatientPortraitUrl(url: string | null) {
+    this.portraitService.revokeObjectUrl(this.patientPortraitUrl());
+    this.patientPortraitUrl.set(url);
+  }
+
+  private isValidPortraitFile(file: File) {
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!supportedTypes.includes(file.type)) {
+      this.showNotification('Seleciona uma imagem JPEG, PNG ou WebP.', 'warning');
+      return false;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.showNotification('A imagem não pode exceder 5 MB.', 'warning');
+      return false;
+    }
+
+    return true;
   }
 
   private async runApi(action: () => Promise<void>, failureMessage: string) {

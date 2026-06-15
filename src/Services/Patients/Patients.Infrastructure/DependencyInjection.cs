@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Patients.Application.Data;
 using Patients.Application.Services;
 using Patients.Infrastructure.Security;
+using Patients.Infrastructure.Storage;
 
 namespace Patients.Infrastructure;
 
@@ -22,6 +23,9 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.Configure<PortraitStorageOptions>(
+            configuration.GetSection(PortraitStorageOptions.SectionName));
+        services.AddScoped<IPortraitStorage, LocalPortraitStorage>();
 
         return services;
     }

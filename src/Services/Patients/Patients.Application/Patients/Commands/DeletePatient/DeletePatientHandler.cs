@@ -1,7 +1,11 @@
 ﻿
 namespace Patients.Application.Patients.Commands.DeletePatient;
 
-public class DeletePatientHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService) : ICommandHandler<DeletePatientCommand, DeletePatientResult>
+public class DeletePatientHandler(
+    IApplicationDbContext dbContext,
+    ICurrentUserService currentUserService,
+    IPortraitStorage portraitStorage)
+    : ICommandHandler<DeletePatientCommand, DeletePatientResult>
 {
     public async Task<DeletePatientResult> Handle(DeletePatientCommand command, CancellationToken cancellationToken)
     {
@@ -60,6 +64,11 @@ public class DeletePatientHandler(IApplicationDbContext dbContext, ICurrentUserS
         dbContext.Patients.Remove(patient);
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        if (patient.PortraitStorageKey is not null)
+        {
+            await portraitStorage.DeleteAsync(patient.PortraitStorageKey, cancellationToken);
+        }
 
         return new DeletePatientResult(true);
     }

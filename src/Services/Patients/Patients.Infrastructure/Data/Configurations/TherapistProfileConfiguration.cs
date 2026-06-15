@@ -41,5 +41,11 @@ public class TherapistProfileConfiguration : IEntityTypeConfiguration<TherapistP
 
         builder.Property(profile => profile.ReportSignature)
             .HasMaxLength(500);
+
+        builder.Property(profile => profile.PortraitStorageKey)
+            .HasMaxLength(500);
+
+        builder.Property(profile => profile.PortraitContentType)
+            .HasMaxLength(100);
     }
 }
