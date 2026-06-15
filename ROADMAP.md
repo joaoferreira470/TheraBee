@@ -53,7 +53,7 @@ Areas and objectives are independent presets. An objective does not need to be a
 - [x] `Objective`: concrete therapeutic objective that can be evaluated over time.
 - [x] Areas and objectives can be created independently from sessions.
 - [x] Areas and objectives can be reused across multiple sessions.
-- [x] Areas and objectives have type, description, priority, and status.
+- [x] Areas and objectives have type, description, and priority.
 - [x] Areas and objectives do not require a parent/child relationship.
 
 Recommended relationship:
@@ -170,7 +170,7 @@ The Angular application should become a routed product rather than a single oper
 
 - [x] Therapy goal domain exists.
 - [x] Goals can be created for a patient.
-- [x] Goals include area, priority, status, and type.
+- [x] Goals include area, priority, and type.
 - [x] Goals can be associated with sessions.
 - [x] Goal progress can be summarized with current dashboard logic.
 - [x] Goals support `Area` and `Objective` types.
@@ -252,7 +252,7 @@ The Angular application should become a routed product rather than a single oper
 - [x] Login/register screens call the backend.
 - [x] Patient list/detail/create screens call the backend.
 - [x] Patient-centered detail page exists as an MVP shell.
-- [x] Goal status update actions are connected.
+- [x] Goal create, edit, and delete actions are connected.
 - [x] Session checkpoint workflow exists in current simplified form.
 - [x] Progress dashboard exists in current simplified form.
 - [x] Report builder/export workflow exists.
@@ -296,7 +296,7 @@ The Angular application should become a routed product rather than a single oper
 ### Phase 4: Therapy Goals
 
 - [x] Add therapeutic goal model.
-- [x] Add goal create/list/update/status endpoints.
+- [x] Add goal create/list/update/delete endpoints.
 - [x] Link goals to patient and therapist ownership.
 - [x] Prepare goals to be referenced by sessions and reports.
 
@@ -333,7 +333,7 @@ The Angular application should become a routed product rather than a single oper
 - [x] Connect Angular auth flow to backend JWT endpoints.
 - [x] Connect patient list/detail/create flows.
 - [x] Build patient-centered detail page with goals, sessions, and report shortcuts.
-- [x] Connect goal status update actions.
+- [x] Connect goal create, edit, and delete actions.
 - [x] Build session checkpoint workflow.
 - [x] Build progress dashboard views.
 - [x] Build report generation and PDF/Word export flow.
