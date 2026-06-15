@@ -207,6 +207,45 @@ h3 {
   border-radius: 8px;
   color: #ffffff;
   background: linear-gradient(135deg, var(--rose), var(--coral));
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+}
+
+.avatar span {
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.portrait-control {
+  cursor: pointer;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.portrait-control:hover {
+  box-shadow: 0 0 0 3px rgba(217, 87, 114, 0.3);
+  transform: translateY(-1px);
+}
+
+.portrait-control .bi-image {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  border-radius: 50%;
+  background-color: var(--surface-strong);
+  color: var(--rose-strong);
+  box-shadow: 0 1px 4px rgba(43, 36, 48, 0.2);
 }
 
 .user-link {
@@ -520,6 +559,11 @@ h3 {
 .bi-person-fill {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.bi-image {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0' fill='black'/%3E%3Cpath d='M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0' fill='black'/%3E%3Cpath d='M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
 }
 
 .panel-heading {
@@ -858,6 +902,18 @@ textarea {
   margin-bottom: 18px;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .patient-portrait {
   position: relative;
   display: grid;
@@ -868,11 +924,47 @@ textarea {
   border-radius: 16px;
   color: var(--rose-strong);
   background: linear-gradient(145deg, #fff4f6, #f8e9ee);
+  overflow: hidden;
+}
+
+.patient-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 16px;
 }
 
 .patient-portrait .bi {
   width: 58px;
   height: 58px;
+}
+
+.portrait-upload-trigger {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--rose-strong);
+  background: var(--surface-strong);
+  box-shadow: 0 2px 8px rgba(43, 36, 48, 0.18);
+  cursor: pointer;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.portrait-upload-trigger:hover {
+  box-shadow: 0 4px 12px rgba(43, 36, 48, 0.24);
+  transform: scale(1.08);
+}
+
+.portrait-upload-trigger .bi {
+  width: 16px;
+  height: 16px;
 }
 
 .patient-hero-copy h2 {
