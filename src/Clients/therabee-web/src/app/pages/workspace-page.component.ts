@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 type WorkspacePage = 'therapist' | 'patient' | 'session';
-type ActionModal = 'patient-create' | 'patient-edit' | 'patient-archive' | 'patient-delete' | 'preset' | 'session-create' | 'session-edit' | '';
+type ActionModal = 'patient-create' | 'patient-edit' | 'patient-archive' | 'patient-delete' | 'preset' | 'preset-delete' | 'session-create' | 'session-edit' | '';
 type NotificationKind = 'info' | 'warning' | 'error';
 
 type WorkspaceNotification = {
@@ -51,7 +51,6 @@ type TherapeuticGoal = {
   type: string;
   description: string;
   priority: string;
-  status: string;
 };
 
 type Session = {
@@ -234,6 +233,7 @@ export class WorkspacePageComponent {
   readonly editingPatientId = signal('');
   readonly patientArchiveTarget = signal<Patient | null>(null);
   readonly patientDeleteTarget = signal<Patient | null>(null);
+  readonly goalDeleteTarget = signal<TherapeuticGoal | null>(null);
   readonly showArchivedPatients = signal(false);
   readonly activeModal = signal<ActionModal>('');
 
@@ -327,8 +327,6 @@ export class WorkspacePageComponent {
   readonly visiblePatientCount = computed(() => this.visiblePatients().length);
   readonly pendingSessionCount = computed(() => this.sessions().filter((session) => session.status === 'Scheduled' || session.status === 'Rescheduled').length);
   readonly completedSessionCount = computed(() => this.sessions().filter((session) => session.status === 'Completed').length);
-  readonly achievedGoalCount = computed(() => this.selectedPatientGoals().filter((goal) => goal.status === 'Achieved').length);
-  readonly openGoalCount = computed(() => this.selectedPatientGoals().filter((goal) => goal.status !== 'Achieved' && goal.status !== 'Suspended').length);
   readonly patientAddressLine = computed(() => this.selectedPatient() ? this.patientAddress(this.selectedPatient()!) : '');
 
   constructor() {
@@ -437,6 +435,10 @@ export class WorkspacePageComponent {
   }
 
   closeActionModal() {
+    if (this.activeModal() === 'preset-delete') {
+      this.goalDeleteTarget.set(null);
+    }
+
     this.activeModal.set('');
   }
 
@@ -484,6 +486,16 @@ export class WorkspacePageComponent {
 
   cancelPatientArchive() {
     this.patientArchiveTarget.set(null);
+    this.closeActionModal();
+  }
+
+  promptDeleteGoal(goal: TherapeuticGoal) {
+    this.goalDeleteTarget.set(goal);
+    this.openActionModal('preset-delete');
+  }
+
+  cancelGoalDeletion() {
+    this.goalDeleteTarget.set(null);
     this.closeActionModal();
   }
 
@@ -657,9 +669,6 @@ export class WorkspacePageComponent {
         type: form.type as TherapeuticGoal['type'],
         description: form.description,
         priority: form.priority as TherapeuticGoal['priority'],
-        status: editingGoalId
-          ? this.goals().find((goal) => goal.id === editingGoalId)?.status ?? 'NotStarted'
-          : 'NotStarted',
       });
 
       await this.refreshPatientGoals(patientId);
@@ -689,18 +698,21 @@ export class WorkspacePageComponent {
     });
   }
 
-  async updateGoalStatus(goalId: string, status: string) {
+  async confirmGoalDeletion() {
+    const goal = this.goalDeleteTarget();
     const patientId = this.selectedPatientId();
-    if (!patientId) {
+    if (!patientId || !goal) {
       return;
     }
 
     await this.runApi(async () => {
-      await firstValueFrom(this.http.patch(`${API_BASE_URL}/therapy-goals/${goalId}/status`, { status }, { headers: this.authHeaders() }));
+      await firstValueFrom(this.http.delete(`${API_BASE_URL}/therapy-goals/${goal.id}`, { headers: this.authHeaders() }));
       await this.refreshPatientGoals(patientId);
       await this.loadPatientContext(patientId, this.selectedSessionId());
-      this.showNotification('Estado do objetivo atualizado.');
-    }, 'Não foi possível atualizar o estado do objetivo.');
+      this.goalDeleteTarget.set(null);
+      this.closeActionModal();
+      this.showNotification('Preset eliminado.');
+    }, 'Não foi possível eliminar o preset.');
   }
 
   async createSession() {
@@ -1029,15 +1041,6 @@ export class WorkspacePageComponent {
     }
 
     return new Intl.DateTimeFormat('pt-PT', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
-  }
-
-  goalStatusLabel(status: string) {
-    return {
-      NotStarted: 'Não iniciado',
-      InProgress: 'Em progresso',
-      Achieved: 'Alcançado',
-      Suspended: 'Suspenso',
-    }[status] ?? status;
   }
 
   goalPriorityLabel(priority: string) {

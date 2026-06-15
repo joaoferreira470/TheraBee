@@ -11,7 +11,6 @@ public static class TherapeuticGoalExtensions
             Type: goal.Type,
             Description: goal.Description,
             Priority: goal.Priority,
-            Status: goal.Status,
             CreatedAt: goal.CreatedAt);
     }
 

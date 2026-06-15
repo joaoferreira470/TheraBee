@@ -11,8 +11,8 @@ public class LoggingBehavior<TRequest, TResponse>
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        logger.LogInformation("[START] Handle request={Request} - Response={Response} - RequestData={RequestData}",
-            typeof(TRequest).Name, typeof(TResponse).Name, request);
+        logger.LogInformation("[START] Handle request={Request} - Response={Response}",
+            typeof(TRequest).Name, typeof(TResponse).Name);
 
         var timer = new Stopwatch();
         timer.Start();

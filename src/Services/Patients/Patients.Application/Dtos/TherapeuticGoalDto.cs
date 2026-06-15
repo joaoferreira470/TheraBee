@@ -7,5 +7,4 @@ public record TherapeuticGoalDto(
     TherapeuticGoalType Type,
     string Description,
     TherapeuticGoalPriority Priority,
-    TherapeuticGoalStatus Status,
     DateTime? CreatedAt);

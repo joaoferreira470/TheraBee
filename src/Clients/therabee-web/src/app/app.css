@@ -615,6 +615,59 @@ dd {
   background: #fff0f1 !important;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(43, 36, 48, 0.42);
+}
+
+.modal-panel {
+  width: min(560px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  box-shadow: 0 28px 76px rgba(43, 36, 48, 0.28);
+}
+
+.modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 14px;
+  background: #f8f1f4;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-heading span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.confirm-body {
+  display: grid;
+  gap: 18px;
+  padding: 18px 20px 22px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 12px;
+}
+
 .report-preview {
   margin-top: 18px;
   padding-top: 18px;

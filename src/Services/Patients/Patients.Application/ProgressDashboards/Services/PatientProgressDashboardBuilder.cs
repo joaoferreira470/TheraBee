@@ -41,14 +41,8 @@ public class PatientProgressDashboardBuilder(IApplicationDbContext dbContext) : 
             ? 0m
             : Math.Round((decimal)completedSessions * 100m / attendanceBase, 1);
 
-        var totalGoals = goals.Count;
-        var notStartedGoals = goals.Count(goal => goal.Status == TherapeuticGoalStatus.NotStarted);
-        var inProgressGoals = goals.Count(goal => goal.Status == TherapeuticGoalStatus.InProgress);
-        var achievedGoals = goals.Count(goal => goal.Status == TherapeuticGoalStatus.Achieved);
-        var suspendedGoals = goals.Count(goal => goal.Status == TherapeuticGoalStatus.Suspended);
-        var goalCompletionRate = totalGoals == 0
-            ? 0m
-            : Math.Round((decimal)achievedGoals * 100m / totalGoals, 1);
+        var areas = goals.Count(goal => goal.Type == TherapeuticGoalType.Area);
+        var objectives = goals.Count(goal => goal.Type == TherapeuticGoalType.Objective);
 
         var lastSession = sessions
             .Where(session => session.StartDateTime <= now)
@@ -72,12 +66,9 @@ public class PatientProgressDashboardBuilder(IApplicationDbContext dbContext) : 
                 PendingRegistrationSessions: pendingRegistrationSessions,
                 AttendanceRate: attendanceRate),
             Goals: new GoalProgressMetricsDto(
-                TotalGoals: totalGoals,
-                NotStartedGoals: notStartedGoals,
-                InProgressGoals: inProgressGoals,
-                AchievedGoals: achievedGoals,
-                SuspendedGoals: suspendedGoals,
-                CompletionRate: goalCompletionRate),
+                TotalPresets: goals.Count,
+                Areas: areas,
+                Objectives: objectives),
             LastSession: lastSession?.ToSessionDto(),
             NextSession: nextSession?.ToSessionDto(),
             GeneratedAt: DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc));

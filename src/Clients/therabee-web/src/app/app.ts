@@ -44,7 +44,6 @@ type TherapeuticGoal = {
   type: string;
   description: string;
   priority: string;
-  status: string;
 };
 
 type Session = {
@@ -194,6 +193,7 @@ export class App {
   readonly dashboard = signal<ProgressDashboard | null>(null);
   readonly selectedPatientId = signal('');
   readonly selectedSessionId = signal('');
+  readonly goalDeleteTarget = signal<TherapeuticGoal | null>(null);
 
   readonly authForm = signal<AuthForm>({
     name: 'Joana Terapeuta',
@@ -251,6 +251,14 @@ export class App {
     return this.goals().filter((goal) => goal.patientId === this.selectedPatientId());
   });
 
+  readonly selectedPatientAreas = computed(() => {
+    return this.selectedPatientGoals().filter((goal) => goal.type === 'Area');
+  });
+
+  readonly selectedPatientObjectives = computed(() => {
+    return this.selectedPatientGoals().filter((goal) => goal.type === 'Objective');
+  });
+
   readonly selectedPatientSessions = computed(() => {
     return this.sessions().filter((session) => session.patientId === this.selectedPatientId());
   });
@@ -271,8 +279,6 @@ export class App {
     return this.sessions().filter((session) => session.status === 'Scheduled' || session.status === 'Rescheduled').length;
   });
   readonly completedSessionCount = computed(() => this.sessions().filter((session) => session.status === 'Completed').length);
-  readonly achievedGoalCount = computed(() => this.selectedPatientGoals().filter((goal) => goal.status === 'Achieved').length);
-  readonly openGoalCount = computed(() => this.selectedPatientGoals().filter((goal) => goal.status !== 'Achieved' && goal.status !== 'Suspended').length);
 
   constructor() {
     if (this.token()) {
@@ -421,17 +427,27 @@ export class App {
     }, 'Nao foi possivel criar objetivo terapeutico.');
   }
 
-  async updateGoalStatus(goalId: string, status: string) {
+  promptDeleteGoal(goal: TherapeuticGoal) {
+    this.goalDeleteTarget.set(goal);
+  }
+
+  cancelGoalDeletion() {
+    this.goalDeleteTarget.set(null);
+  }
+
+  async confirmGoalDeletion() {
+    const goal = this.goalDeleteTarget();
     const patientId = this.selectedPatientId();
-    if (!patientId) {
+    if (!patientId || !goal) {
       return;
     }
 
     await this.runApi(async () => {
-      await firstValueFrom(this.http.patch(`${API_BASE_URL}/therapy-goals/${goalId}/status`, { status }, { headers: this.authHeaders() }));
+      await firstValueFrom(this.http.delete(`${API_BASE_URL}/therapy-goals/${goal.id}`, { headers: this.authHeaders() }));
       await this.loadPatientContext(patientId);
-      this.apiMessage.set('Estado do objetivo atualizado.');
-    }, 'Nao foi possivel atualizar o estado do objetivo.');
+      this.goalDeleteTarget.set(null);
+      this.apiMessage.set('Preset eliminado.');
+    }, 'Nao foi possivel eliminar o preset.');
   }
 
   async createSession() {
@@ -554,15 +570,6 @@ export class App {
     }
 
     return new Intl.DateTimeFormat('pt-PT', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
-  }
-
-  goalStatusLabel(status: string) {
-    return {
-      NotStarted: 'Nao iniciado',
-      InProgress: 'Em progresso',
-      Achieved: 'Alcancado',
-      Suspended: 'Suspenso',
-    }[status] ?? status;
   }
 
   goalPriorityLabel(priority: string) {

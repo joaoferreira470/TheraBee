@@ -195,8 +195,8 @@
           </article>
 
           <div class="metrics-grid patient-metrics">
-            <article class="metric-card"><span>Objetivos abertos</span><strong>{{ openGoalCount() }}</strong></article>
-            <article class="metric-card"><span>Objetivos alcançados</span><strong>{{ achievedGoalCount() }}</strong></article>
+            <article class="metric-card"><span>Áreas</span><strong>{{ selectedPatientAreas().length }}</strong></article>
+            <article class="metric-card"><span>Objetivos</span><strong>{{ selectedPatientObjectives().length }}</strong></article>
             <article class="metric-card"><span>Sessões do paciente</span><strong>{{ selectedPatientSessions().length }}</strong></article>
             <article class="metric-card"><span>Relatórios</span><strong>{{ selectedPatientReports().length }}</strong></article>
           </div>
@@ -242,12 +242,10 @@
                       @for (goal of selectedPatientAreas(); track goal.id) {
                         <article class="list-card">
                           <strong>{{ goal.description }}</strong>
-                          <span>{{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
+                          <span>{{ goalPriorityLabel(goal.priority) }}</span>
                           <div class="inline-actions">
                             <button type="button" (click)="editGoal(goal)">Editar</button>
-                            <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>
-                            <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcançado</button>
-                            <button type="button" (click)="updateGoalStatus(goal.id, 'Suspended')">Suspender</button>
+                            <button type="button" (click)="promptDeleteGoal(goal)">Eliminar</button>
                           </div>
                         </article>
                       }
@@ -263,12 +261,10 @@
                       @for (goal of selectedPatientObjectives(); track goal.id) {
                         <article class="list-card">
                           <strong>{{ goal.description }}</strong>
-                          <span>{{ goalPriorityLabel(goal.priority) }} - {{ goalStatusLabel(goal.status) }}</span>
+                          <span>{{ goalPriorityLabel(goal.priority) }}</span>
                           <div class="inline-actions">
                             <button type="button" (click)="editGoal(goal)">Editar</button>
-                            <button type="button" (click)="updateGoalStatus(goal.id, 'InProgress')">Em progresso</button>
-                            <button type="button" (click)="updateGoalStatus(goal.id, 'Achieved')">Alcançado</button>
-                            <button type="button" (click)="updateGoalStatus(goal.id, 'Suspended')">Suspender</button>
+                            <button type="button" (click)="promptDeleteGoal(goal)">Eliminar</button>
                           </div>
                         </article>
                       }
@@ -420,6 +416,27 @@
                     <button type="button" class="ghost-button" (click)="cancelGoalEditing(); closeActionModal()">Cancelar edição</button>
                   }
                 </form>
+              </section>
+            </div>
+          }
+
+          @if (activeModal() === 'preset-delete' && goalDeleteTarget(); as goalToDelete) {
+            <div class="modal-backdrop" role="presentation">
+              <section class="modal-panel confirm-modal" role="dialog" aria-modal="true" aria-labelledby="preset-delete-title" (click)="$event.stopPropagation()">
+                <div class="modal-heading">
+                  <div>
+                    <h2 id="preset-delete-title">Eliminar preset</h2>
+                    <span>{{ goalToDelete.description }}</span>
+                  </div>
+                  <button type="button" class="icon-button" aria-label="Fechar" (click)="cancelGoalDeletion()">x</button>
+                </div>
+                <div class="modal-form confirm-body">
+                  <p>Deseja eliminar permanentemente o preset "{{ goalToDelete.description }}"?</p>
+                  <div class="modal-actions">
+                    <button type="button" class="ghost-button" (click)="cancelGoalDeletion()">Não</button>
+                    <button type="button" class="primary-button danger-button" (click)="confirmGoalDeletion()">Sim</button>
+                  </div>
+                </div>
               </section>
             </div>
           }

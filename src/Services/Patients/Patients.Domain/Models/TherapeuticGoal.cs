@@ -7,7 +7,6 @@ public class TherapeuticGoal : Entity<Guid>
     public string Description { get; set; } = default!;
     public TherapeuticGoalType Type { get; set; } = TherapeuticGoalType.Objective;
     public TherapeuticGoalPriority Priority { get; set; } = TherapeuticGoalPriority.Medium;
-    public TherapeuticGoalStatus Status { get; set; } = TherapeuticGoalStatus.NotStarted;
 
     public static TherapeuticGoal Create(
         Guid id,
@@ -24,8 +23,7 @@ public class TherapeuticGoal : Entity<Guid>
             TherapistId = therapistId,
             Description = description,
             Type = type,
-            Priority = priority,
-            Status = TherapeuticGoalStatus.NotStarted
+            Priority = priority
         };
     }
 
@@ -39,8 +37,4 @@ public class TherapeuticGoal : Entity<Guid>
         Priority = priority;
     }
 
-    public void UpdateStatus(TherapeuticGoalStatus status)
-    {
-        Status = status;
-    }
 }

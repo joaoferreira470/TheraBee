@@ -88,7 +88,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
         {
             $"Este relatório acompanha {patient.Name} no período entre {periodStart.ToString("dd MMM yyyy", PtPt)} e {periodEnd.ToString("dd MMM yyyy", PtPt)}.",
             $"Neste período foram concluídas {dashboard.Attendance.CompletedSessions} sessões num total de {dashboard.Attendance.TotalSessions} sessões registadas.",
-            $"A taxa atual de objetivos alcançados é de {dashboard.Goals.CompletionRate:0.#}% em {dashboard.Goals.TotalGoals} objetivos terapêuticos."
+            $"Estão definidos {dashboard.Goals.TotalPresets} presets terapêuticos: {dashboard.Goals.Areas} áreas e {dashboard.Goals.Objectives} objetivos."
         });
     }
 
@@ -108,17 +108,14 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
     private static string BuildGoalProgressSummary(IEnumerable<TherapeuticGoal> goals, PatientProgressDashboardDto dashboard)
     {
         var goalList = goals.Any()
-            ? string.Join(", ", goals.Select(goal => $"{LocalizeGoalType(goal.Type.ToString())}: {goal.Description} ({LocalizeGoalStatus(goal.Status.ToString())})"))
+            ? string.Join(", ", goals.Select(goal => $"{LocalizeGoalType(goal.Type.ToString())}: {goal.Description}"))
             : "Ainda não existem objetivos registados.";
 
         return string.Join(Environment.NewLine, new[]
         {
-            $"Total de objetivos: {dashboard.Goals.TotalGoals}",
-            $"Não iniciados: {dashboard.Goals.NotStartedGoals}",
-            $"Em progresso: {dashboard.Goals.InProgressGoals}",
-            $"Alcançados: {dashboard.Goals.AchievedGoals}",
-            $"Suspensos: {dashboard.Goals.SuspendedGoals}",
-            $"Taxa de conclusão: {dashboard.Goals.CompletionRate:0.#}%",
+            $"Total de presets: {dashboard.Goals.TotalPresets}",
+            $"Áreas: {dashboard.Goals.Areas}",
+            $"Objetivos: {dashboard.Goals.Objectives}",
             $"Presets trabalhados: {goalList}"
         });
     }
@@ -166,18 +163,6 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             "Rever os objetivos ativos na próxima sessão agendada.",
             "Registar checkpoints sessão a sessão para que o próximo relatório possa ser gerado mais rapidamente."
         });
-    }
-
-    private static string LocalizeGoalStatus(string status)
-    {
-        return status switch
-        {
-            "NotStarted" => "não iniciado",
-            "InProgress" => "em progresso",
-            "Achieved" => "alcançado",
-            "Suspended" => "suspenso",
-            _ => status
-        };
     }
 
     private static string LocalizeSessionStatus(string status)

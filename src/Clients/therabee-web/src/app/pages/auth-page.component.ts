@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -71,7 +71,14 @@ export class AuthPageComponent {
       await this.router.navigate(['/therapist']);
     } catch (error) {
       console.error(error);
-      this.apiMessage.set('Não foi possível autenticar. Confirma se a API está a correr.');
+      const detail = error instanceof HttpErrorResponse && typeof error.error?.detail === 'string'
+        ? error.error.detail
+        : null;
+      this.apiMessage.set(
+        detail === 'Invalid email or password.'
+          ? 'Email ou password inválidos.'
+          : detail ?? 'Não foi possível autenticar. Confirma se a API está a correr.',
+      );
     } finally {
       this.isBusy.set(false);
     }
