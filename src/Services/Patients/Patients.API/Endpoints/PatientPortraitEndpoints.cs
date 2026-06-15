@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Patients.Application.Patients.Commands.DeletePatientPortrait;
 using Patients.Application.Patients.Commands.UploadPatientPortrait;
 using Patients.Application.Patients.Queries.GetPatientPortrait;
@@ -12,7 +13,7 @@ public class PatientPortraitEndpoints : ICarterModule
     {
         app.MapPut("/patients/{patientId:guid}/portrait", async (
             Guid patientId,
-            IFormFile file,
+            [FromForm] IFormFile file,
             ISender sender,
             CancellationToken cancellationToken) =>
         {

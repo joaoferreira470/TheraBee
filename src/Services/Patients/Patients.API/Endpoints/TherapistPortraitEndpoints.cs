@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Patients.Application.Therapists.Commands.DeleteCurrentTherapistPortrait;
 using Patients.Application.Therapists.Commands.UploadCurrentTherapistPortrait;
 using Patients.Application.Therapists.Queries.GetCurrentTherapistPortrait;
@@ -11,7 +12,7 @@ public class TherapistPortraitEndpoints : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("/therapists/me/portrait", async (
-            IFormFile file,
+            [FromForm] IFormFile file,
             ISender sender,
             CancellationToken cancellationToken) =>
         {

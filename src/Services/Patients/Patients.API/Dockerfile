@@ -26,5 +26,8 @@ RUN dotnet publish "./Patients.API.csproj" -c $BUILD_CONFIGURATION -o /app/publi
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
+USER root
+RUN mkdir -p /app/data/portraits && chown -R $APP_UID /app/data
 COPY --from=publish /app/publish .
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Patients.API.dll"]

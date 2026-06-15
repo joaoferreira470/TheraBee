@@ -7,7 +7,6 @@
         <span>Espaço clínico</span>
       </div>
     </div>
-
     <nav class="nav" aria-label="Workspace navigation">
       <button type="button" class="nav-item" [class.active]="currentPage() === 'therapist'" (click)="goTherapist()">
         <strong>Terapeuta</strong>
@@ -31,25 +30,8 @@
 
   <main class="workspace">
     <header class="topbar">
-      <div>
-        <h1>
-          @switch (currentPage()) {
-            @case ('therapist') { {{ therapistName() }} }
-            @case ('patient') { {{ selectedPatient()?.name || 'Paciente' }} }
-            @case ('session') { {{ currentSessionLabel() }} }
-          }
-        </h1>
-        <p class="subtitle">
-          @switch (currentPage()) {
-            @case ('therapist') { Lista de pacientes, agenda e acesso rápido ao trabalho clínico. }
-            @case ('patient') { Perfil clínico, objetivos, sessões, checkpoints e relatórios. }
-            @case ('session') { Edição da sessão e confirmação da avaliação clínica. }
-          }
-        </p>
-      </div>
-
-      <div class="status-card">
-        @if (user(); as currentUser) {
+      <div class="topbar-copy">
+        @if (currentPage() === 'therapist' && user(); as currentUser) {
           <input
             #therapistPortraitInput
             class="visually-hidden"
@@ -59,7 +41,7 @@
           />
           <button
             type="button"
-            class="avatar portrait-control"
+            class="patient-portrait therapist-portrait"
             title="Carregar fotografia"
             aria-label="Carregar fotografia do terapeuta"
             (click)="therapistPortraitInput.click()"
@@ -67,9 +49,35 @@
             @if (therapistPortraitUrl(); as portraitUrl) {
               <img [src]="portraitUrl" [alt]="'Fotografia de ' + currentUser.name" />
             } @else {
-              <span>{{ currentUser.name.slice(0, 2).toUpperCase() }}</span>
-              <i class="bi bi-image" aria-hidden="true"></i>
+              <i class="bi bi-person-fill" aria-hidden="true"></i>
+              <span class="portrait-upload-trigger">
+                <i class="bi bi-image" aria-hidden="true"></i>
+              </span>
             }
+          </button>
+        }
+        <div>
+          <h1>
+            @switch (currentPage()) {
+              @case ('therapist') { {{ therapistName() }} }
+              @case ('patient') { {{ selectedPatient()?.name || 'Paciente' }} }
+              @case ('session') { {{ currentSessionLabel() }} }
+            }
+          </h1>
+          <p class="subtitle">
+            @switch (currentPage()) {
+              @case ('therapist') { Lista de pacientes, agenda e acesso rápido ao trabalho clínico. }
+              @case ('patient') { Perfil clínico, objetivos, sessões, checkpoints e relatórios. }
+              @case ('session') { Edição da sessão e confirmação da avaliação clínica. }
+            }
+          </p>
+        </div>
+      </div>
+
+      <div class="status-card">
+        @if (user(); as currentUser) {
+          <button type="button" class="avatar" aria-label="Perfil do terapeuta" (click)="goTherapist()">
+            <span>{{ currentUser.name.slice(0, 2).toUpperCase() }}</span>
           </button>
           <button type="button" class="user-link" (click)="goTherapist()">
             <strong>{{ currentUser.name }}</strong>
@@ -204,6 +212,15 @@
                 <img [src]="portraitUrl" [alt]="'Fotografia de ' + patient.name" />
               } @else {
                 <i class="bi bi-person-fill" aria-hidden="true"></i>
+                <button
+                  type="button"
+                  class="portrait-upload-trigger"
+                  title="Carregar fotografia"
+                  aria-label="Carregar fotografia do paciente"
+                  (click)="patientPortraitInput.click()"
+                >
+                  <i class="bi bi-image" aria-hidden="true"></i>
+                </button>
               }
               <input
                 #patientPortraitInput
@@ -212,15 +229,6 @@
                 accept="image/jpeg,image/png,image/webp"
                 (change)="uploadPatientPortrait($event, patient)"
               />
-              <button
-                type="button"
-                class="portrait-upload-trigger"
-                title="Carregar fotografia"
-                aria-label="Carregar fotografia do paciente"
-                (click)="patientPortraitInput.click()"
-              >
-                <i class="bi bi-image" aria-hidden="true"></i>
-              </button>
             </div>
             <div class="patient-hero-copy">
               <p class="eyebrow">Ficha do paciente</p>
@@ -228,6 +236,24 @@
               <p>{{ patient.calculatedAge }} anos - {{ patient.mainDiagnosis }}</p>
             </div>
             <div class="patient-hero-actions">
+              <button
+                type="button"
+                class="icon-button"
+                title="Alterar fotografia"
+                aria-label="Alterar fotografia"
+                (click)="patientPortraitInput.click()"
+              >
+                <i class="bi bi-image" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                class="icon-button"
+                title="Editar Dados"
+                aria-label="Editar Dados"
+                (click)="startEditingPatient(patient); openActionModal('patient-edit')"
+              >
+                <i class="bi bi-pen" aria-hidden="true"></i>
+              </button>
               <button
                 type="button"
                 class="icon-button archive-icon-button"
@@ -271,9 +297,6 @@
                   <dt>Motivo</dt><dd>{{ patient.referralReason || 'Não especificado' }}</dd>
                   <dt>Morada</dt><dd>{{ patientAddressLine() || 'Não especificada' }}</dd>
                 </dl>
-                <div class="inline-actions">
-                  <button type="button" (click)="startEditingPatient(patient); openActionModal('patient-edit')">Alterar Dados</button>
-                </div>
               </div>
             </details>
 
@@ -295,12 +318,18 @@
                     </div>
                     <div class="stack">
                       @for (goal of selectedPatientAreas(); track goal.id) {
-                        <article class="list-card">
-                          <strong>{{ goal.description }}</strong>
-                          <span>{{ goalPriorityLabel(goal.priority) }}</span>
-                          <div class="inline-actions">
-                            <button type="button" (click)="editGoal(goal)">Editar</button>
-                            <button type="button" (click)="promptDeleteGoal(goal)">Eliminar</button>
+                        <article class="list-card preset-card">
+                          <div class="preset-card-copy">
+                            <strong>{{ goal.description }}</strong>
+                            <span>{{ goalPriorityLabel(goal.priority) }}</span>
+                          </div>
+                          <div class="preset-card-actions">
+                            <button type="button" class="icon-button" title="Editar" aria-label="Editar preset" (click)="editGoal(goal)">
+                              <i class="bi bi-pen" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="icon-button danger-icon-button" title="Eliminar" aria-label="Eliminar preset" (click)="promptDeleteGoal(goal)">
+                              <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
                           </div>
                         </article>
                       }
@@ -314,12 +343,18 @@
                     </div>
                     <div class="stack">
                       @for (goal of selectedPatientObjectives(); track goal.id) {
-                        <article class="list-card">
-                          <strong>{{ goal.description }}</strong>
-                          <span>{{ goalPriorityLabel(goal.priority) }}</span>
-                          <div class="inline-actions">
-                            <button type="button" (click)="editGoal(goal)">Editar</button>
-                            <button type="button" (click)="promptDeleteGoal(goal)">Eliminar</button>
+                        <article class="list-card preset-card">
+                          <div class="preset-card-copy">
+                            <strong>{{ goal.description }}</strong>
+                            <span>{{ goalPriorityLabel(goal.priority) }}</span>
+                          </div>
+                          <div class="preset-card-actions">
+                            <button type="button" class="icon-button" title="Editar" aria-label="Editar preset" (click)="editGoal(goal)">
+                              <i class="bi bi-pen" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="icon-button danger-icon-button" title="Eliminar" aria-label="Eliminar preset" (click)="promptDeleteGoal(goal)">
+                              <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
                           </div>
                         </article>
                       }
@@ -336,7 +371,15 @@
               </summary>
               <div class="accordion-body">
                 <div class="inline-actions modal-launcher">
-                  <button type="button" (click)="openActionModal('session-create')">Agendar Sessão</button>
+                  <button
+                    type="button"
+                    class="schedule-session-button"
+                    title="Agendar sessão"
+                    (click)="openActionModal('session-create')"
+                  >
+                    <i class="bi bi-calendar2-plus" aria-hidden="true"></i>
+                    <span>Agendar Sessão</span>
+                  </button>
                 </div>
 
                 <div class="stack separated">
@@ -357,7 +400,17 @@
                 <small>{{ selectedPatientReports().length }} rascunhos</small>
               </summary>
               <div class="accordion-body">
-                <button type="button" class="primary-button compact-action" (click)="createReportDraft()">Gerar rascunho</button>
+                <div class="inline-actions modal-launcher">
+                  <button
+                    type="button"
+                    class="schedule-session-button"
+                    title="Gerar rascunho"
+                    (click)="createReportDraft()"
+                  >
+                    <i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>
+                    <span>Gerar rascunho</span>
+                  </button>
+                </div>
                 <div class="stack separated">
                   @for (report of selectedPatientReports(); track report.id) {
                     <article class="report-card">
@@ -365,9 +418,36 @@
                       <p>{{ report.executiveSummary }}</p>
                       <small>{{ formatDate(report.createdAt) }}</small>
                       <div class="report-actions">
-                        <button type="button" (click)="exportReport(report.id, 'pdf')">PDF</button>
-                        <button type="button" (click)="exportReport(report.id, 'word')">Word</button>
-                        <button type="button" class="danger-button" (click)="discardReport(report.id)">Descartar</button>
+                        <button
+                          type="button"
+                          class="icon-button"
+                          style="padding: 0"
+                          title="Exportar PDF"
+                          aria-label="Exportar PDF"
+                          (click)="exportReport(report.id, 'pdf')"
+                        >
+                          <i class="bi bi-file-pdf" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-button"
+                          style="padding: 0"
+                          title="Exportar Word"
+                          aria-label="Exportar Word"
+                          (click)="exportReport(report.id, 'word')"
+                        >
+                          <i class="bi bi-file-word" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-button danger-icon-button"
+                          style="padding: 0"
+                          title="Descartar"
+                          aria-label="Descartar relatório"
+                          (click)="discardReport(report.id)"
+                        >
+                          <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
                       </div>
                     </article>
                   }
@@ -466,10 +546,12 @@
                       <option value="High">Alta</option>
                     </select>
                   </label>
-                  <button type="submit" class="primary-button">{{ editingGoalId() ? 'Guardar' : 'Criar' }}</button>
-                  @if (editingGoalId()) {
-                    <button type="button" class="ghost-button" (click)="cancelGoalEditing(); closeActionModal()">Cancelar edição</button>
-                  }
+                  <div class="preset-form-actions">
+                    <button type="submit" class="primary-button">{{ editingGoalId() ? 'Guardar' : 'Criar' }}</button>
+                    @if (editingGoalId()) {
+                      <button type="button" class="ghost-button" (click)="cancelGoalEditing(); closeActionModal()">Cancelar edição</button>
+                    }
+                  </div>
                 </form>
               </section>
             </div>
