@@ -13,9 +13,9 @@ public class CompleteSessionValidator : AbstractValidator<CompleteSessionCommand
     {
         RuleFor(x => x.SessionId).NotEmpty().WithMessage("SessionId is required");
         RuleFor(x => x.Session.ClinicalSummary).NotEmpty().MaximumLength(2000).WithMessage("ClinicalSummary is required");
-        RuleFor(x => x.Session.ObjectivesWorked).NotEmpty().MaximumLength(2000).WithMessage("ObjectivesWorked is required");
-        RuleFor(x => x.Session.ProgressRating).NotEmpty().MaximumLength(200).WithMessage("ProgressRating is required");
-        RuleFor(x => x.Session.Activities).NotEmpty().MaximumLength(2000).WithMessage("Activities is required");
+        RuleFor(x => x.Session.ObjectivesWorked).MaximumLength(2000);
+        RuleFor(x => x.Session.ProgressRating).MaximumLength(200);
+        RuleFor(x => x.Session.Activities).MaximumLength(2000);
         RuleFor(x => x.Session.PatientResponse).NotEmpty().MaximumLength(2000).WithMessage("PatientResponse is required");
         RuleFor(x => x.Session.Difficulties).NotEmpty().MaximumLength(2000).WithMessage("Difficulties is required");
         RuleFor(x => x.Session.Recommendations).NotEmpty().MaximumLength(2000).WithMessage("Recommendations is required");

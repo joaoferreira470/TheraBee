@@ -49,11 +49,17 @@ public class Session : Entity<Guid>
     {
         EnsureMutable();
 
+        var schedulingChanged = StartDateTime != startDateTime || EndDateTime != endDateTime;
+
         StartDateTime = startDateTime;
         EndDateTime = endDateTime;
         Type = type;
         Location = location.Trim();
-        Status = SessionStatus.Rescheduled;
+
+        if (schedulingChanged)
+        {
+            Status = SessionStatus.Rescheduled;
+        }
     }
 
     public void Cancel(string reason)
@@ -79,9 +85,9 @@ public class Session : Entity<Guid>
 
     public void Complete(
         string clinicalSummary,
-        string objectivesWorked,
-        string progressRating,
-        string activities,
+        string? objectivesWorked,
+        string? progressRating,
+        string? activities,
         string patientResponse,
         string difficulties,
         string recommendations,
@@ -91,9 +97,9 @@ public class Session : Entity<Guid>
 
         Status = SessionStatus.Completed;
         ClinicalSummary = clinicalSummary.Trim();
-        ObjectivesWorked = objectivesWorked.Trim();
-        ProgressRating = progressRating.Trim();
-        Activities = activities.Trim();
+        ObjectivesWorked = string.IsNullOrWhiteSpace(objectivesWorked) ? null : objectivesWorked.Trim();
+        ProgressRating = string.IsNullOrWhiteSpace(progressRating) ? null : progressRating.Trim();
+        Activities = string.IsNullOrWhiteSpace(activities) ? null : activities.Trim();
         PatientResponse = patientResponse.Trim();
         Difficulties = difficulties.Trim();
         Recommendations = recommendations.Trim();

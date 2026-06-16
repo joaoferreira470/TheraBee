@@ -1,4 +1,5 @@
-﻿import { HttpClient, HttpHeaders } from '@angular/common/http';
+﻿import { CommonModule } from '@angular/common';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -213,6 +214,7 @@ const USER_KEY = 'therabee_user';
 @Component({
   selector: 'app-workspace-page',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './workspace-page.component.html',
   styleUrl: './workspace-page.component.css',
 })
@@ -251,6 +253,7 @@ export class WorkspacePageComponent implements OnDestroy {
   readonly goalDeleteTarget = signal<TherapeuticGoal | null>(null);
   readonly showArchivedPatients = signal(false);
   readonly activeModal = signal<ActionModal>('');
+  readonly workedAreaIds = signal<string[]>([]);
 
   readonly patientForm = signal<PatientForm>(this.createEmptyPatientForm());
 
@@ -287,14 +290,14 @@ export class WorkspacePageComponent implements OnDestroy {
   });
 
   readonly checkpointForm = signal<CheckpointForm>({
-    clinicalSummary: 'Sessão focada em regulação tónica e organização motora.',
-    objectivesWorked: 'Coordenação bilateral; planeamento motor; atenção sustentada.',
-    progressRating: 'Bom progresso',
-    activities: 'Circuito motor, encaixes finos e sequencia de tarefas.',
-    patientResponse: 'Boa adesão, com maior autonomia no final da sessão.',
-    difficulties: 'Oscilação atencional em tarefas longas.',
-    recommendations: 'Manter rotina de exercícios curtos em casa.',
-    nextSteps: 'Rever objetivos e aumentar complexidade gradualmente.',
+    clinicalSummary: '',
+    objectivesWorked: '',
+    progressRating: '',
+    activities: '',
+    patientResponse: '',
+    difficulties: '',
+    recommendations: '',
+    nextSteps: '',
   });
   readonly assessmentForm = signal<Record<string, GoalAssessmentFormEntry>>({});
 
@@ -304,6 +307,10 @@ export class WorkspacePageComponent implements OnDestroy {
   readonly selectedPatientGoals = computed(() => this.goals().filter((goal) => goal.patientId === this.activePatientId()));
   readonly selectedPatientAreas = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'Area'));
   readonly selectedPatientObjectives = computed(() => this.selectedPatientGoals().filter((goal) => goal.type === 'Objective'));
+  readonly selectedWorkedAreas = computed(() => {
+    const selectedIds = new Set(this.workedAreaIds());
+    return this.selectedPatientAreas().filter((goal) => selectedIds.has(goal.id));
+  });
   readonly availableSessionGoals = computed(() => this.sessionForm().type === 'Intervention'
     ? this.selectedPatientObjectives()
     : this.selectedPatientAreas());
@@ -865,7 +872,7 @@ export class WorkspacePageComponent implements OnDestroy {
 
   async completeSession(sessionId: string) {
     const patientId = this.selectedPatientId();
-    const form = this.checkpointForm();
+    const form = this.buildCompleteSessionPayload();
     if (!patientId) {
       return;
     }
@@ -884,8 +891,9 @@ export class WorkspacePageComponent implements OnDestroy {
     }
 
     await this.runApi(async () => {
+      const checkpointPayload = this.buildCompleteSessionPayload();
       await this.saveSessionAssessmentsInternal(session.id);
-      await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/complete`, { session: this.checkpointForm() }, { headers: this.authHeaders() }));
+      await firstValueFrom(this.http.patch(`${API_BASE_URL}/sessions/${session.id}/complete`, { session: checkpointPayload }, { headers: this.authHeaders() }));
 
       await this.loadPatientContext(session.patientId, session.id);
       this.showNotification('Avaliações submetidas e sessão confirmada.');
@@ -1067,6 +1075,7 @@ export class WorkspacePageComponent implements OnDestroy {
           recommendations: '',
           nextSteps: '',
         });
+        this.restoreWorkedAreasSelection(sessionResponse?.session.objectivesWorked);
       } else {
         this.sessionForm.set({
           startDateTime: '2026-06-08T10:00',
@@ -1076,6 +1085,7 @@ export class WorkspacePageComponent implements OnDestroy {
           goalIds: [],
         });
         this.assessmentForm.set({});
+        this.workedAreaIds.set([]);
       }
     }, 'Não consegui carregar a ficha completa do paciente. Confirma se o paciente ainda existe, se a sessão está válida e se a API está a responder.');
   }
@@ -1185,6 +1195,72 @@ export class WorkspacePageComponent implements OnDestroy {
       : this.selectedPatientAreas().map((goal) => goal.id);
   }
 
+  isTherapeuticSession(sessionType?: string | null) {
+    return sessionType === 'Intervention';
+  }
+
+  shouldShowWorkedAreas() {
+    return this.isTherapeuticSession(this.selectedSession()?.type ?? this.sessionForm().type);
+  }
+
+  isWorkedAreaSelected(goalId: string) {
+    return this.workedAreaIds().includes(goalId);
+  }
+
+  toggleWorkedArea(goalId: string) {
+    this.workedAreaIds.update((goalIds) => goalIds.includes(goalId)
+      ? goalIds.filter((item) => item !== goalId)
+      : [...goalIds, goalId]);
+
+    this.syncWorkedAreasToCheckpoint();
+  }
+
+  private syncWorkedAreasToCheckpoint() {
+    this.checkpointForm.update((form) => ({
+      ...form,
+      objectivesWorked: this.buildObjectivesWorkedValue(),
+    }));
+  }
+
+  private buildObjectivesWorkedValue() {
+    if (!this.shouldShowWorkedAreas()) {
+      return '';
+    }
+
+    const descriptionsById = new Map(this.selectedPatientAreas().map((goal) => [goal.id, goal.description.trim()]));
+    return this.workedAreaIds()
+      .map((goalId) => descriptionsById.get(goalId))
+      .filter((description): description is string => Boolean(description))
+      .join('; ');
+  }
+
+  private restoreWorkedAreasSelection(rawValue?: string | null) {
+    const requestedDescriptions = (rawValue ?? '')
+      .split(/[;,]/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (!requestedDescriptions.length) {
+      this.workedAreaIds.set([]);
+      return;
+    }
+
+    const selectedIds = this.selectedPatientAreas()
+      .filter((goal) => requestedDescriptions.includes(goal.description.trim()))
+      .map((goal) => goal.id);
+
+    this.workedAreaIds.set(selectedIds);
+  }
+
+  private buildCompleteSessionPayload(): CheckpointForm {
+    return {
+      ...this.checkpointForm(),
+      objectivesWorked: this.buildObjectivesWorkedValue(),
+      progressRating: '',
+      activities: '',
+    };
+  }
+
   private async saveSessionAssessmentsInternal(sessionId: string) {
     const goals = this.selectedSessionGoals();
     const form = this.assessmentForm();
@@ -1209,6 +1285,15 @@ export class WorkspacePageComponent implements OnDestroy {
       Cancelled: 'Cancelada',
       NoShow: 'Falta',
     }[status] ?? status;
+  }
+
+  sessionStatusClass(status: string) {
+    return {
+      Scheduled: 'session-status-scheduled',
+      Rescheduled: 'session-status-scheduled',
+      Completed: 'session-status-completed',
+      Cancelled: 'session-status-cancelled',
+    }[status] ?? '';
   }
 
   patientStatusLabel(status: string) {
@@ -1441,4 +1526,5 @@ export class WorkspacePageComponent implements OnDestroy {
     return form;
   }
 }
+
 
