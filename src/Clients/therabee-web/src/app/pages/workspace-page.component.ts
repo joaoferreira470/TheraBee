@@ -897,6 +897,7 @@ export class WorkspacePageComponent implements OnDestroy {
 
       await this.loadPatientContext(session.patientId, session.id);
       this.showNotification('Avaliações submetidas e sessão confirmada.');
+      await this.goPatient(session.patientId);
     }, 'Não foi possível confirmar a sessão.');
   }
 
