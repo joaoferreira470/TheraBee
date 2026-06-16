@@ -2,15 +2,16 @@ using Patients.Application.Reports.Commands.CreateReportDraft;
 
 namespace Patients.API.Endpoints;
 
+public record CreateReportDraftRequest(DateTime PeriodStart, DateTime PeriodEnd);
 public record CreateReportDraftResponse(Guid Id);
 
 public class CreateReportDraft : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/patients/{patientId}/reports/draft", async (Guid patientId, ISender sender) =>
+        app.MapPost("/patients/{patientId}/reports/draft", async (Guid patientId, CreateReportDraftRequest request, ISender sender) =>
         {
-            var result = await sender.Send(new CreateReportDraftCommand(patientId));
+            var result = await sender.Send(new CreateReportDraftCommand(patientId, request.PeriodStart, request.PeriodEnd));
             var response = result.Adapt<CreateReportDraftResponse>();
 
             return Results.Created($"/reports/{response.Id}", response);

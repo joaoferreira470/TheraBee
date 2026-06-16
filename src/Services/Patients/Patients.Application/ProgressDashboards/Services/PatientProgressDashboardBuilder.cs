@@ -2,7 +2,7 @@ namespace Patients.Application.ProgressDashboards.Services;
 
 public class PatientProgressDashboardBuilder(IApplicationDbContext dbContext) : IPatientProgressDashboardBuilder
 {
-    public async Task<PatientProgressDashboardDto> BuildAsync(Guid patientId, Guid therapistId, CancellationToken cancellationToken)
+    public async Task<PatientProgressDashboardDto> BuildAsync(Guid patientId, Guid therapistId, CancellationToken cancellationToken, DateTime? periodStart = null, DateTime? periodEnd = null)
     {
         var patient = await dbContext.Patients
             .AsNoTracking()
@@ -18,6 +18,16 @@ public class PatientProgressDashboardBuilder(IApplicationDbContext dbContext) : 
             .Include(session => session.SessionGoals)
             .Where(session => session.PatientId == patientId && session.TherapistId == therapistId)
             .ToListAsync(cancellationToken);
+
+        if (periodStart.HasValue)
+        {
+            sessions = sessions.Where(session => session.StartDateTime >= periodStart.Value).ToList();
+        }
+
+        if (periodEnd.HasValue)
+        {
+            sessions = sessions.Where(session => session.StartDateTime <= periodEnd.Value).ToList();
+        }
 
         var goals = await dbContext.TherapeuticGoals
             .AsNoTracking()

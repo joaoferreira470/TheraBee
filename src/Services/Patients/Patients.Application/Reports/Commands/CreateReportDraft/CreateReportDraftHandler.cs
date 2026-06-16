@@ -8,7 +8,7 @@ public class CreateReportDraftHandler(IApplicationDbContext dbContext, ICurrentU
         var currentUserId = currentUserService.UserId
             ?? throw new UnauthorizedAccessException("User is not authenticated.");
 
-        var report = await reportDraftBuilder.BuildAsync(command.PatientId, currentUserId, cancellationToken);
+        var report = await reportDraftBuilder.BuildAsync(command.PatientId, currentUserId, command.PeriodStart, command.PeriodEnd, cancellationToken);
 
         dbContext.Reports.Add(report);
         await dbContext.SaveChangesAsync(cancellationToken);

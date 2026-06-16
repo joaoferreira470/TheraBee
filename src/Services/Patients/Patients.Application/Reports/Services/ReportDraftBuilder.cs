@@ -6,7 +6,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
 {
     private static readonly CultureInfo PtPt = CultureInfo.GetCultureInfo("pt-PT");
 
-    public async Task<Report> BuildAsync(Guid patientId, Guid therapistId, CancellationToken cancellationToken)
+    public async Task<Report> BuildAsync(Guid patientId, Guid therapistId, DateTime periodStart, DateTime periodEnd, CancellationToken cancellationToken)
     {
         var patient = await dbContext.Patients
             .AsNoTracking()
@@ -26,6 +26,10 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             .OrderBy(session => session.StartDateTime)
             .ToListAsync(cancellationToken);
 
+        var filteredSessions = sessions
+            .Where(session => session.StartDateTime >= periodStart && session.StartDateTime <= periodEnd)
+            .ToList();
+
         var goals = await dbContext.TherapeuticGoals
             .AsNoTracking()
             .Where(goal => goal.PatientId == patientId && goal.TherapistId == therapistId)
@@ -33,17 +37,15 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             .ThenBy(goal => goal.Description)
             .ToListAsync(cancellationToken);
 
-        var dashboard = await dashboardBuilder.BuildAsync(patientId, therapistId, cancellationToken);
-        var periodStart = sessions.Any() ? sessions.Min(session => session.StartDateTime) : DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
-        var periodEnd = sessions.Any() ? sessions.Max(session => session.EndDateTime) : DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+        var dashboard = await dashboardBuilder.BuildAsync(patientId, therapistId, cancellationToken, periodStart, periodEnd);
         var title = $"Relatório de Progresso Terapêutico - {patient.Name}";
 
         var patientSnapshot = BuildPatientSnapshot(patientDto);
         var executiveSummary = BuildExecutiveSummary(patientDto, dashboard, periodStart, periodEnd);
         var attendanceSummary = BuildAttendanceSummary(dashboard);
         var goalProgressSummary = BuildGoalProgressSummary(goals, dashboard);
-        var sessionSummary = BuildSessionSummary(sessions, dashboard);
-        var recommendations = BuildRecommendations(sessions, patientDto);
+        var sessionSummary = BuildSessionSummary(filteredSessions, dashboard);
+        var recommendations = BuildRecommendations(filteredSessions, patientDto);
 
         return Report.CreateDraft(
             id: Guid.NewGuid(),

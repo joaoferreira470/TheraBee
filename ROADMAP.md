@@ -237,7 +237,7 @@ The Angular application should become a routed product rather than a single oper
 - [x] Generated reports are stored in patient history.
 - [x] Report generation is restricted to the owning therapist.
 - [x] Report draft content is generated in Portuguese from Portugal.
-- [ ] Reports can be generated for a user-selected date interval.
+- [x] Reports can be generated for a user-selected date interval.
 - [ ] Reports can be generated for a therapeutic cycle.
 - [ ] Reports include visual goal progress charts.
 - [ ] Reports group evidence by areas and objectives.

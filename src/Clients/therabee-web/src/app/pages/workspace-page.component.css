@@ -1009,6 +1009,13 @@ dd {
   gap: 12px;
 }
 
+.report-period-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .form-grid.compact {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }

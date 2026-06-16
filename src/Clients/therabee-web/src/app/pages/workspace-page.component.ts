@@ -207,6 +207,11 @@ type GoalAssessmentFormEntry = {
   clinicalNotes: string;
 };
 
+type ReportPeriodForm = {
+  periodStart: string;
+  periodEnd: string;
+};
+
 const API_BASE_URL = 'http://localhost:6001';
 const TOKEN_KEY = 'therabee_token';
 const USER_KEY = 'therabee_user';
@@ -300,6 +305,10 @@ export class WorkspacePageComponent implements OnDestroy {
     nextSteps: '',
   });
   readonly assessmentForm = signal<Record<string, GoalAssessmentFormEntry>>({});
+  readonly reportPeriodForm = signal<ReportPeriodForm>({
+    periodStart: '',
+    periodEnd: '',
+  });
 
   readonly selectedPatient = computed(() => this.selectedPatientDetail() ?? this.patients().find((patient) => patient.id === this.selectedPatientId()) ?? null);
   readonly selectedSession = computed(() => this.selectedSessionDetail() ?? this.sessions().find((session) => session.id === this.selectedSessionId()) ?? null);
@@ -453,6 +462,10 @@ export class WorkspacePageComponent implements OnDestroy {
         [field]: value,
       },
     }));
+  }
+
+  updateReportPeriod(field: keyof ReportPeriodForm, value: string) {
+    this.reportPeriodForm.update((form) => ({ ...form, [field]: value }));
   }
 
   openActionModal(modal: ActionModal) {
@@ -916,12 +929,22 @@ export class WorkspacePageComponent implements OnDestroy {
 
   async createReportDraft() {
     const patientId = this.selectedPatientId();
+    const form = this.reportPeriodForm();
     if (!patientId) {
       return;
     }
 
     await this.runApi(async () => {
-      await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/reports/draft`, {}, { headers: this.authHeaders() }));
+      const validationMessage = this.reportPeriodValidationMessage(form);
+      if (validationMessage) {
+        this.showNotification(validationMessage, 'warning');
+        return;
+      }
+
+      await firstValueFrom(this.http.post(`${API_BASE_URL}/patients/${patientId}/reports/draft`, {
+        periodStart: this.toIsoDateTime(form.periodStart),
+        periodEnd: this.toIsoDateTime(form.periodEnd),
+      }, { headers: this.authHeaders() }));
       await this.loadPatientContext(patientId, this.selectedSessionId());
       this.showNotification('Rascunho de relatório gerado.');
     }, 'Não foi possível gerar o rascunho de relatório.');
@@ -1021,6 +1044,7 @@ export class WorkspacePageComponent implements OnDestroy {
       this.dashboard.set(dashboardResponse.status === 'fulfilled' ? dashboardResponse.value.dashboard : null);
 
       const sessionItems = sessionsResponse.status === 'fulfilled' ? sessionsResponse.value.sessions : [];
+      this.reportPeriodForm.set(this.buildDefaultReportPeriod(sessionItems));
       const nextSessionId = sessionId || sessionItems[0]?.id || '';
       this.selectedSessionDetail.set(nextSessionId ? sessionItems.find((item) => item.id === nextSessionId) ?? null : null);
 
@@ -1464,6 +1488,44 @@ export class WorkspacePageComponent implements OnDestroy {
     const date = new Date(value);
     date.setHours(date.getHours() + 1);
     return this.toLocalDateTime(date.toISOString());
+  }
+
+  private buildDefaultReportPeriod(sessions: Session[]): ReportPeriodForm {
+    if (!sessions.length) {
+      const now = new Date();
+      return {
+        periodStart: this.toLocalDateTime(now.toISOString()),
+        periodEnd: this.addOneHour(this.toLocalDateTime(now.toISOString())),
+      };
+    }
+
+    const sortedSessions = sessions.slice().sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime());
+    const firstSession = sortedSessions[0];
+    const lastSession = sortedSessions[sortedSessions.length - 1];
+
+    return {
+      periodStart: this.toLocalDateTime(firstSession.startDateTime),
+      periodEnd: this.toLocalDateTime(lastSession.endDateTime),
+    };
+  }
+
+  private reportPeriodValidationMessage(form: ReportPeriodForm) {
+    if (!form.periodStart || !form.periodEnd) {
+      return 'Define o período do relatório.';
+    }
+
+    const start = new Date(form.periodStart);
+    const end = new Date(form.periodEnd);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return 'O período do relatório não é válido.';
+    }
+
+    if (end < start) {
+      return 'A data de fim do relatório tem de ser igual ou posterior à data de início.';
+    }
+
+    return '';
   }
 
   private sessionDateValidationMessage(form: SessionForm) {

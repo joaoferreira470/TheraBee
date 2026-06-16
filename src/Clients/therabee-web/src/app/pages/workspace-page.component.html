@@ -427,6 +427,25 @@
                 <small>{{ selectedPatientReports().length }} rascunhos</small>
               </summary>
               <div class="accordion-body">
+                <div class="report-period-form">
+                  <label>
+                    Início
+                    <input
+                      type="datetime-local"
+                      [value]="reportPeriodForm().periodStart"
+                      (input)="updateReportPeriod('periodStart', $any($event.target).value)"
+                    />
+                  </label>
+                  <label>
+                    Fim
+                    <input
+                      type="datetime-local"
+                      [value]="reportPeriodForm().periodEnd"
+                      [min]="reportPeriodForm().periodStart || null"
+                      (input)="updateReportPeriod('periodEnd', $any($event.target).value)"
+                    />
+                  </label>
+                </div>
                 <div class="inline-actions modal-launcher">
                   <button
                     type="button"
