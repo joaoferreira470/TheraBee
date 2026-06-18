@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Patients.Application.Data;
 using Patients.Application.Services;
+using Patients.Infrastructure.AI;
 using Patients.Infrastructure.Security;
 using Patients.Infrastructure.Storage;
 
@@ -23,6 +24,8 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
+        services.AddHttpClient<IClinicalReportNarrativeGenerator, OpenAiClinicalReportNarrativeGenerator>();
         services.Configure<PortraitStorageOptions>(
             configuration.GetSection(PortraitStorageOptions.SectionName));
         services.AddScoped<IPortraitStorage, LocalPortraitStorage>();

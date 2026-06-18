@@ -239,7 +239,9 @@ The Angular application should become a routed product rather than a single oper
 - [x] Report draft content is generated in Portuguese from Portugal.
 - [x] Reports can be generated for a user-selected date interval.
 - [ ] Reports can be generated for a therapeutic cycle.
-- [ ] Reports include visual goal progress charts.
+- [x] Reports use a fixed backend template with AI-filled sections.
+- [x] Reports can ingest chronological session notes and assessments from the selected interval.
+- [ ] Reports include visual goal progress charts derived from session scoring.
 - [ ] Reports group evidence by areas and objectives.
 - [ ] Reports use session goal assessment scores.
 - [ ] Report generation can export directly to PDF or Word based on user choice.
@@ -394,11 +396,13 @@ The Angular application should become a routed product rather than a single oper
 - [ ] Rework dashboard metrics to use 0-10 goal assessment trends.
 - [ ] Add per-goal progress charts in Angular.
 - [ ] Add area versus objective progress views.
-- [ ] Add report date interval selection.
-- [ ] Generate reports from selected date interval.
+- [x] Add report date interval selection.
+- [x] Generate reports from selected date interval using session chronology, notes, and scoring.
+- [x] Add a fixed backend report template with AI-generated section content.
 - [ ] Generate reports from therapeutic cycle.
 - [ ] Include goal progress visuals in PDF and Word.
 - [ ] Group report sections by areas and objectives.
+- [x] Add prompt-building and AI response validation for report text generation.
 
 ### Phase 14: Online Test Deployment
 
@@ -444,12 +448,12 @@ Before changing existing code, create or switch to a branch that matches the int
   - [x] Sessions are implemented with the current clinical-type mapping.
   - [x] Session goal assessments are implemented.
   - [x] Progress dashboards are implemented with current simplified metrics.
-  - [x] Reports are implemented with current simplified data model.
+  - [x] Reports are implemented with current data model and AI-assisted narrative fallback.
   - [x] PDF export is implemented.
   - [x] Word export is implemented.
   - [x] Report deletion/discard is implemented.
   - [x] Goal scoring 0-10 is implemented.
-  - [ ] Reports by date interval are implemented.
+  - [x] Reports by date interval are implemented.
   - [x] Schedule overlap validation is implemented.
 
 ## Current Angular Client

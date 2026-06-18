@@ -1,12 +1,21 @@
 using System.Globalization;
+using Patients.Application.Reports.Models;
 
 namespace Patients.Application.Reports.Services;
 
-public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgressDashboardBuilder dashboardBuilder) : IReportDraftBuilder
+public class ReportDraftBuilder(
+    IApplicationDbContext dbContext,
+    IPatientProgressDashboardBuilder dashboardBuilder,
+    IClinicalReportNarrativeGenerator narrativeGenerator) : IReportDraftBuilder
 {
     private static readonly CultureInfo PtPt = CultureInfo.GetCultureInfo("pt-PT");
 
-    public async Task<Report> BuildAsync(Guid patientId, Guid therapistId, DateTime periodStart, DateTime periodEnd, CancellationToken cancellationToken)
+    public async Task<Report> BuildAsync(
+        Guid patientId,
+        Guid therapistId,
+        DateTime periodStart,
+        DateTime periodEnd,
+        CancellationToken cancellationToken)
     {
         var patient = await dbContext.Patients
             .AsNoTracking()
@@ -22,6 +31,7 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
         var sessions = await dbContext.Sessions
             .AsNoTracking()
             .Include(session => session.SessionGoals)
+            .Include(session => session.SessionGoalAssessments)
             .Where(session => session.PatientId == patientId && session.TherapistId == therapistId)
             .OrderBy(session => session.StartDateTime)
             .ToListAsync(cancellationToken);
@@ -38,14 +48,19 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             .ToListAsync(cancellationToken);
 
         var dashboard = await dashboardBuilder.BuildAsync(patientId, therapistId, cancellationToken, periodStart, periodEnd);
+        var narrative = await narrativeGenerator.GenerateAsync(
+            new ClinicalReportDraftContext(patientDto, periodStart, periodEnd, goals, filteredSessions, dashboard),
+            cancellationToken);
+
         var title = $"Relatório de Progresso Terapêutico - {patient.Name}";
 
         var patientSnapshot = BuildPatientSnapshot(patientDto);
-        var executiveSummary = BuildExecutiveSummary(patientDto, dashboard, periodStart, periodEnd);
-        var attendanceSummary = BuildAttendanceSummary(dashboard);
-        var goalProgressSummary = BuildGoalProgressSummary(goals, dashboard);
-        var sessionSummary = BuildSessionSummary(filteredSessions, dashboard);
-        var recommendations = BuildRecommendations(filteredSessions, patientDto);
+        var executiveSummary = SelectText(narrative?.ExecutiveSummary, BuildExecutiveSummary(patientDto, dashboard, periodStart, periodEnd));
+        var attendanceSummary = SelectText(narrative?.AttendanceSummary, BuildAttendanceSummary(dashboard));
+        var goalProgressSummary = SelectText(narrative?.GoalProgressSummary, BuildGoalProgressSummary(goals, dashboard));
+        var sessionSummary = SelectText(narrative?.SessionSummary, BuildSessionSummary(filteredSessions, dashboard));
+        var recommendations = SelectText(narrative?.Recommendations, BuildRecommendations(filteredSessions, patientDto));
+        var additionalNotes = string.IsNullOrWhiteSpace(narrative?.AdditionalNotes) ? null : narrative?.AdditionalNotes;
 
         return Report.CreateDraft(
             id: Guid.NewGuid(),
@@ -60,7 +75,12 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             goalProgressSummary: goalProgressSummary,
             sessionSummary: sessionSummary,
             recommendations: recommendations,
-            additionalNotes: null);
+            additionalNotes: additionalNotes);
+    }
+
+    private static string SelectText(string? narrativeText, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(narrativeText) ? fallback : narrativeText.Trim();
     }
 
     private static string BuildPatientSnapshot(PatientDto patient)
@@ -190,11 +210,12 @@ public class ReportDraftBuilder(IApplicationDbContext dbContext, IPatientProgres
             _ => type
         };
     }
+
     private static string LocalizeGoalType(string type)
     {
         return type switch
         {
-            "Area" => "area",
+            "Area" => "área",
             "Objective" => "objetivo",
             _ => type
         };

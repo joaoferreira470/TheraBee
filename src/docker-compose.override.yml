@@ -5,6 +5,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ConnectionStrings__DefaultConnection=Host=patientsdb;Port=5432;Database=therabee_patients;Username=postgres;Password=secret
       - PortraitStorage__RootPath=/app/data/portraits
+      - OpenAI__ApiKey=THERABEEKEY
     depends_on:
       - patientsdb
     ports:
